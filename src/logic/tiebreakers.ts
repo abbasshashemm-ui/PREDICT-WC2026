@@ -7,6 +7,12 @@ export interface HeadToHeadRecord {
   goalsFor: number;
 }
 
+export interface SortGroupResult {
+  standings: GroupStanding[];
+  requiresManualTieBreak: boolean;
+  deadlockTeamIds: string[];
+}
+
 export function createEmptyStanding(team: GroupStanding['team']): GroupStanding {
   return {
     team,
@@ -134,6 +140,40 @@ function compareFairPlayAndRanking(a: GroupStanding, b: GroupStanding): number {
   return a.team.fifaRanking - b.team.fifaRanking;
 }
 
+/** True when criteria 6–7 (fair play + drawing of lots) cannot separate teams. */
+export function isFairPlayLotsDeadlock(a: GroupStanding, b: GroupStanding): boolean {
+  return (
+    a.fairPlayPoints === b.fairPlayPoints && a.team.fifaRanking === b.team.fifaRanking
+  );
+}
+
+function stableTeamOrder(a: GroupStanding, b: GroupStanding): number {
+  return a.team.id.localeCompare(b.team.id);
+}
+
+function isClusterDeadlocked(cluster: GroupStanding[]): boolean {
+  if (cluster.length < 2) return false;
+  return cluster.every((row) => isFairPlayLotsDeadlock(row, cluster[0]));
+}
+
+function sortByFairPlayOrDeadlock(
+  cluster: GroupStanding[],
+  deadlocks: string[],
+): GroupStanding[] {
+  if (cluster.length <= 1) return cluster;
+
+  if (isClusterDeadlocked(cluster)) {
+    deadlocks.push(...cluster.map((s) => s.team.id));
+    return [...cluster].sort(stableTeamOrder);
+  }
+
+  return [...cluster].sort(compareFairPlayAndRanking);
+}
+
+interface ResolveContext {
+  deadlocks: string[];
+}
+
 /**
  * Criteria 3–5 among concerned teams, with FIFA-mandated recursion when 3+ remain tied
  * (re-evaluate using only matches between the teams still tied).
@@ -141,6 +181,7 @@ function compareFairPlayAndRanking(a: GroupStanding, b: GroupStanding): number {
 function resolveMiniLeagueTie(
   tied: GroupStanding[],
   groupMatches: Match[],
+  ctx: ResolveContext,
 ): GroupStanding[] {
   if (tied.length <= 1) return tied;
 
@@ -158,11 +199,13 @@ function resolveMiniLeagueTie(
     }
 
     if (bucket.length === 2) {
-      const pairSorted = [...bucket].sort((a, b) => {
-        const mini = compareMiniLeague(a, b, headToHead);
-        return mini !== 0 ? mini : compareFairPlayAndRanking(a, b);
-      });
-      result.push(...pairSorted);
+      const [a, b] = bucket;
+      const mini = compareMiniLeague(a, b, headToHead);
+      if (mini !== 0) {
+        result.push(...[...bucket].sort((x, y) => compareMiniLeague(x, y, headToHead)));
+      } else {
+        result.push(...sortByFairPlayOrDeadlock(bucket, ctx.deadlocks));
+      }
       continue;
     }
 
@@ -183,13 +226,12 @@ function resolveMiniLeagueTie(
       bucket.map((s) => miniLeagueKey(s, concernedH2H)),
     );
 
-    // No played H2H matches (or still inseparable) → fair play / FIFA ranking
     if (uniqueMiniKeys.size === 1) {
-      result.push(...[...bucket].sort((a, b) => compareFairPlayAndRanking(a, b)));
+      result.push(...sortByFairPlayOrDeadlock(bucket, ctx.deadlocks));
       continue;
     }
 
-    result.push(...resolveMiniLeagueTie(bucket, concernedMatches));
+    result.push(...resolveMiniLeagueTie(bucket, concernedMatches, ctx));
   }
 
   return result;
@@ -198,11 +240,12 @@ function resolveMiniLeagueTie(
 /**
  * Resolves teams equal on points using FIFA Art. 32.5 criteria 1–7.
  * Criteria 1–2: overall GD, GS. Criteria 3–5: mini-league (recursive).
- * Criteria 6–7: fair play, then FIFA ranking (drawing of lots proxy).
+ * Criteria 6–7: fair play, then drawing of lots — deadlocks require manual override.
  */
 function resolveTiedTeams(
   tied: GroupStanding[],
   groupMatches: Match[],
+  ctx: ResolveContext,
 ): GroupStanding[] {
   if (tied.length <= 1) return tied;
 
@@ -223,7 +266,7 @@ function resolveTiedTeams(
       result.push(bucket[0]);
       continue;
     }
-    result.push(...resolveMiniLeagueTie(bucket, groupMatches));
+    result.push(...resolveMiniLeagueTie(bucket, groupMatches, ctx));
   }
 
   return result;
@@ -269,10 +312,35 @@ function groupByPoints(standings: GroupStanding[]): GroupStanding[][] {
     .map(([, group]) => group);
 }
 
+function applyManualOrder(
+  resolved: GroupStanding[],
+  deadlockTeamIds: string[],
+  manualOrder: string[],
+): GroupStanding[] | null {
+  const uniqueDeadlocks = [...new Set(deadlockTeamIds)];
+  if (uniqueDeadlocks.length < 2) return resolved;
+
+  const orderedIds = manualOrder.filter((id) => uniqueDeadlocks.includes(id));
+  if (orderedIds.length !== uniqueDeadlocks.length) return null;
+  if (new Set(orderedIds).size !== uniqueDeadlocks.length) return null;
+
+  const byId = new Map(resolved.map((s) => [s.team.id, s]));
+  const cluster = orderedIds.map((id) => byId.get(id)!);
+  const rest = resolved.filter((s) => !uniqueDeadlocks.includes(s.team.id));
+  const points = cluster[0].points;
+
+  const before = rest.filter((s) => s.points > points);
+  const after = rest.filter((s) => s.points < points);
+
+  return [...before, ...cluster, ...after];
+}
+
 export function sortGroupStandingsFifa(
   standings: GroupStanding[],
   matches: Match[],
-): GroupStanding[] {
+  manualOrder?: string[],
+): SortGroupResult {
+  const ctx: ResolveContext = { deadlocks: [] };
   const resolved: GroupStanding[] = [];
 
   for (const tieGroup of groupByPoints(standings)) {
@@ -280,10 +348,27 @@ export function sortGroupStandingsFifa(
       resolved.push(tieGroup[0]);
       continue;
     }
-    resolved.push(...resolveTiedTeams(tieGroup, matches));
+    resolved.push(...resolveTiedTeams(tieGroup, matches, ctx));
   }
 
-  return resolved.map((row, index) => ({ ...row, position: index + 1 }));
+  const deadlockTeamIds = [...new Set(ctx.deadlocks)];
+
+  if (deadlockTeamIds.length >= 2 && manualOrder) {
+    const merged = applyManualOrder(resolved, deadlockTeamIds, manualOrder);
+    if (merged) {
+      return {
+        standings: merged.map((row, index) => ({ ...row, position: index + 1 })),
+        requiresManualTieBreak: false,
+        deadlockTeamIds: [],
+      };
+    }
+  }
+
+  return {
+    standings: resolved.map((row, index) => ({ ...row, position: index + 1 })),
+    requiresManualTieBreak: deadlockTeamIds.length >= 2,
+    deadlockTeamIds,
+  };
 }
 
 /** @deprecated Use sortGroupStandingsFifa */

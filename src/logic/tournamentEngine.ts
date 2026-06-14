@@ -11,6 +11,7 @@ import type {
   Group,
   GroupId,
   GroupStanding,
+  ManualTieBreakOrders,
   Match,
   RoundOf32WinnerSlot,
   Team,
@@ -63,7 +64,8 @@ export function calculateGroupStandings(
   group: GroupId,
   teams: Team[],
   matches: Match[],
-): GroupStanding[] {
+  manualTieBreakOrders?: ManualTieBreakOrders,
+): Group {
   const standingsMap = new Map<string, GroupStanding>();
 
   for (const team of teams.filter((t) => t.group === group)) {
@@ -113,23 +115,34 @@ export function calculateGroupStandings(
     goalDifference: s.goalsFor - s.goalsAgainst,
   }));
 
-  return sortGroupStandingsFifa(raw, groupMatches);
+  const sorted = sortGroupStandingsFifa(raw, groupMatches, manualTieBreakOrders?.[group]);
+
+  return {
+    id: group,
+    teams: teams.filter((t) => t.group === group),
+    standings: sorted.standings,
+    requiresManualTieBreak: sorted.requiresManualTieBreak,
+    deadlockTeamIds: sorted.deadlockTeamIds,
+  };
 }
 
 /** Convenience entry point: recompute all 12 group tables from match state. */
 export function calculateGroupStandingsFromMatches(
   matches: Match[],
   teams: Team[],
+  manualTieBreakOrders?: ManualTieBreakOrders,
 ): Group[] {
-  return calculateAllGroupStandings(teams, matches);
+  return calculateAllGroupStandings(teams, matches, manualTieBreakOrders);
 }
 
-export function calculateAllGroupStandings(teams: Team[], matches: Match[]): Group[] {
-  return GROUP_IDS.map((id) => ({
-    id,
-    teams: teams.filter((t) => t.group === id),
-    standings: calculateGroupStandings(id, teams, matches),
-  }));
+export function calculateAllGroupStandings(
+  teams: Team[],
+  matches: Match[],
+  manualTieBreakOrders?: ManualTieBreakOrders,
+): Group[] {
+  return GROUP_IDS.map((id) =>
+    calculateGroupStandings(id, teams, matches, manualTieBreakOrders),
+  );
 }
 
 export function isGroupStageComplete(matches: Match[]): boolean {
@@ -185,8 +198,9 @@ export function buildTournamentSnapshot(
   groupMatches: Match[],
   knockoutMatches: Match[],
   championId: string | null = null,
+  manualTieBreakOrders?: ManualTieBreakOrders,
 ): TournamentSnapshot {
-  const groups = calculateAllGroupStandings(teams, groupMatches);
+  const groups = calculateAllGroupStandings(teams, groupMatches, manualTieBreakOrders);
   const thirdPlaceStandings = buildThirdPlaceWildcardTable(groups);
   const qualifiedThirdGroups = getQualifiedThirdPlaceGroups(thirdPlaceStandings);
   const annexCKey = resolveAnnexCScenarioKey(qualifiedThirdGroups);

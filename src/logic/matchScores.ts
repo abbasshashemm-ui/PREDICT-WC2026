@@ -7,9 +7,21 @@ export interface EffectiveMatchScores {
   source: 'official' | 'user';
 }
 
-/** Simulator mode — users always control match results. */
-export function isMatchLocked(_match: Match, _now: Date = new Date()): boolean {
-  return false;
+function hasOfficialResult(match: Match): boolean {
+  return (
+    match.status === 'completed' &&
+    match.officialHomeScore !== null &&
+    match.officialAwayScore !== null
+  );
+}
+
+/** Lock edits when live official results are active for a completed match. */
+export function isMatchLocked(
+  match: Match,
+  useRealWorldData = false,
+  _now: Date = new Date(),
+): boolean {
+  return useRealWorldData && hasOfficialResult(match);
 }
 
 export function usesOfficialResult(match: Match): boolean {

@@ -1,0 +1,28 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/api/og"
+  to = "/.netlify/functions/og"
+  status = 200
+
+[[redirects]]
+  from = "/api/bracket-meta"
+  to = "/.netlify/functions/bracket-meta"
+  status = 200
+
+[[redirects]]
+  from = "/bracket/*"
+  to = "/.netlify/functions/bracket-meta?slug=:splat"
+  status = 200
+  conditions = {User-Agent = ["*bot*", "*crawl*", "*spider*", "*facebookexternalhit*", "*Twitterbot*", "*WhatsApp*", "*LinkedInBot*", "*Slackbot*", "*Discordbot*", "*TelegramBot*"]}
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

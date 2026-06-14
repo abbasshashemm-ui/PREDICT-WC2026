@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "updatedAt": "2026-06-12T12:00:00Z",
+  "matches": [
+    {
+      "id": "m-1",
+      "matchId": 1,
+      "status": "completed",
+      "officialHomeScore": 2,
+      "officialAwayScore": 1
+    },
+    {
+      "id": "m-2",
+      "matchId": 2,
+      "status": "completed",
+      "officialHomeScore": 0,
+      "officialAwayScore": 0
+    },
+    {
+      "id": "m-3",
+      "matchId": 3,
+      "status": "completed",
+      "officialHomeScore": 3,
+      "officialAwayScore": 1
+    },
+    {
+      "id": "m-4",
+      "matchId": 4,
+      "status": "live",
+      "officialHomeScore": 1,
+      "officialAwayScore": 1
+    },
+    {
+      "id": "m-5",
+      "matchId": 5,
+      "status": "completed",
+      "officialHomeScore": 1,
+      "officialAwayScore": 2
+    },
+    {
+      "id": "m-6",
+      "matchId": 6,
+      "status": "completed",
+      "officialHomeScore": 2,
+      "officialAwayScore": 2
+    },
+    {
+      "id": "m-73",
+      "matchId": 73,
+      "status": "completed",
+      "officialHomeScore": 1,
+      "officialAwayScore": 1,
+      "officialPenaltyWinnerId": null
+    }
+  ]
+}

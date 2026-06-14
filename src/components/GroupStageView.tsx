@@ -2,11 +2,18 @@ import { useMemo, useState } from 'react';
 import type { GroupId } from '../types';
 import { GROUP_IDS } from '../types';
 import { useTournament } from '../context/TournamentContext';
+import { useMobileViewport } from '../hooks/useMobileViewport';
 import { GroupTable } from './GroupTable';
 import { MatchCard } from './MatchCard';
+import {
+  DEFAULT_MATCH_SLOT_HEIGHT,
+  LIVE_MATCH_SLOT_HEIGHT,
+  VirtualizedMatchList,
+} from './VirtualizedMatchList';
 
 export function GroupStageView() {
-  const { state, setGroupScore } = useTournament();
+  const { state, setGroupScore, useRealWorldData, performance } = useTournament();
+  const isMobile = useMobileViewport();
   const [activeGroup, setActiveGroup] = useState<GroupId>('A');
 
   const groupMatches = useMemo(
@@ -36,16 +43,21 @@ export function GroupStageView() {
           ))}
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2">
-          {groupMatches.map((match) => (
+        <VirtualizedMatchList
+          items={groupMatches}
+          itemKey={(match) => match.id}
+          itemHeight={useRealWorldData ? LIVE_MATCH_SLOT_HEIGHT : DEFAULT_MATCH_SLOT_HEIGHT}
+          enabled={isMobile}
+          renderItem={(match) => (
             <MatchCard
-              key={match.id}
               match={match}
               teams={state.teams}
+              useRealWorldData={useRealWorldData}
+              evaluation={performance.byMatchId[match.matchId]}
               onScoreChange={(home, away) => setGroupScore(match.id, home, away)}
             />
-          ))}
-        </div>
+          )}
+        />
       </section>
 
       <aside className="space-y-4">

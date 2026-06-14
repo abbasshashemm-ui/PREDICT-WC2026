@@ -34,6 +34,7 @@ export function definitionToMatch(def: MatchDefinition): Match {
     advancedTeamId: null,
     officialHomeScore: null,
     officialAwayScore: null,
+    officialPenaltyWinnerId: null,
     discipline: { ...EMPTY_MATCH_DISCIPLINE },
     targetMatchId: def.targetMatchId,
     targetSlot: def.targetSlot,

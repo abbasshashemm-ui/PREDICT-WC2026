@@ -17,14 +17,8 @@ export function syncUserBracketWithRealWorld(
       status: official.status,
       officialHomeScore: official.officialHomeScore,
       officialAwayScore: official.officialAwayScore,
+      officialPenaltyWinnerId: official.officialPenaltyWinnerId ?? null,
       discipline: official.discipline ?? match.discipline,
-      penalties: {
-        ...match.penalties,
-        winnerTeamId:
-          match.phase === 'knockout'
-            ? (official.officialPenaltyWinnerId ?? match.penalties.winnerTeamId)
-            : null,
-      },
     };
   });
 }

@@ -52,3 +52,150 @@ input[type='number'] {
 .scrollbar-none::-webkit-scrollbar {
   display: none;
 }
+
+/* Knockout bracket — progression glow on decided matches */
+@keyframes bracket-glow-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px rgba(52, 211, 153, 0.45),
+      0 0 18px rgba(16, 185, 129, 0.12),
+      inset 0 0 24px rgba(16, 185, 129, 0.04);
+  }
+  50% {
+    box-shadow:
+      0 0 0 2px rgba(110, 231, 183, 0.75),
+      0 0 32px rgba(16, 185, 129, 0.32),
+      inset 0 0 28px rgba(16, 185, 129, 0.08);
+  }
+}
+
+.bracket-card-progression {
+  position: relative;
+  border-color: rgba(52, 211, 153, 0.55) !important;
+  background-image: linear-gradient(
+    135deg,
+    rgba(6, 78, 59, 0.35) 0%,
+    rgba(15, 23, 42, 0.92) 45%,
+    rgba(6, 95, 70, 0.2) 100%
+  ) !important;
+  animation: bracket-glow-pulse 2.4s ease-in-out infinite;
+}
+
+.bracket-card-progression::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(120deg, #34d399, #10b981, #059669, #34d399);
+  background-size: 200% 200%;
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: bracket-border-shift 3s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes bracket-border-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+.bracket-team-winner {
+  box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.35);
+}
+
+.bracket-team-loser {
+  opacity: 0.4;
+}
+
+.bracket-team-loser .bracket-team-name {
+  text-decoration: line-through;
+  text-decoration-color: rgba(148, 163, 184, 0.65);
+}
+
+.bracket-path {
+  stroke: #475569;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  opacity: 0.55;
+  transition:
+    stroke 0.65s ease,
+    stroke-width 0.45s ease,
+    opacity 0.45s ease,
+    filter 0.45s ease;
+}
+
+.bracket-path--active {
+  stroke-width: 2.5;
+  opacity: 1;
+  stroke-dasharray: 40;
+  stroke-dashoffset: 0;
+  filter: drop-shadow(0 0 6px rgba(52, 211, 153, 0.55));
+  animation: bracket-path-flow 1.2s ease-out;
+}
+
+@keyframes bracket-path-flow {
+  0% {
+    stroke-dashoffset: 40;
+    opacity: 0.35;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+.share-champion-neon {
+  background: linear-gradient(90deg, #6ee7b7 0%, #ffffff 35%, #a7f3d0 65%, #34d399 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 18px rgba(52, 211, 153, 0.55));
+}
+
+.share-poster-frame {
+  overflow: hidden;
+}
+
+.share-poster-frame.capture-ready {
+  border-color: rgba(52, 211, 153, 0.35);
+  box-shadow:
+    0 0 0 2px rgba(52, 211, 153, 0.15),
+    0 24px 80px rgba(0, 0, 0, 0.55);
+}
+
+.share-poster-frame.capture-ready .share-champion-neon {
+  filter: drop-shadow(0 0 28px rgba(52, 211, 153, 0.75));
+}
+
+@keyframes mobile-drawer-slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.mobile-drawer-sheet--enter {
+  animation: mobile-drawer-slide-up 0.34s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.virtual-match-slot {
+  contain: layout paint;
+}
+
+.match-row-skeleton {
+  contain: strict;
+}

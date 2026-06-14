@@ -5,7 +5,19 @@
  */
 import { createGroupMatches, createKnockoutMatches } from '../data/matchFactory';
 import { createTeams } from '../data/teams';
-import type { Match, OfficialMatchData, Team, TournamentSnapshot } from '../types';
+import type {
+  GroupId,
+  ManualTieBreakOrders,
+  Match,
+  OfficialMatchData,
+  Team,
+  TournamentSnapshot,
+} from '../types';
+import {
+  advancementChanged,
+  clearDownstreamKnockoutPredictions,
+  hasUnresolvedManualTieBreaks,
+} from './cascadeCleaner';
 import {
   buildThirdPlaceWildcardTable,
   buildTournamentSnapshot,
@@ -19,23 +31,31 @@ import {
   rebuildKnockoutBracket,
 } from './knockoutBracket';
 import { syncUserBracketWithRealWorld } from './syncBracket';
-import { simulateGroupMatchScore } from './groupStageSimulator';
+import { simulateGroupStage as runSimulateGroupStage } from './simulationEngine';
 
 export interface TournamentState {
   teams: Team[];
   groupMatches: Match[];
   knockoutMatches: Match[];
   snapshot: TournamentSnapshot;
+  manualTieBreakOrders: ManualTieBreakOrders;
 }
 
 function buildSnapshot(
   teams: Team[],
   groupMatches: Match[],
   knockoutMatches: Match[],
+  manualTieBreakOrders: ManualTieBreakOrders,
 ): TournamentSnapshot {
   const finalMatch = knockoutMatches.find((m) => m.stage === 'Final');
   const championId = finalMatch ? getMatchWinner(finalMatch) : null;
-  return buildTournamentSnapshot(teams, groupMatches, knockoutMatches, championId);
+  return buildTournamentSnapshot(
+    teams,
+    groupMatches,
+    knockoutMatches,
+    championId,
+    manualTieBreakOrders,
+  );
 }
 
 /**
@@ -46,15 +66,64 @@ function recomputeFromMatches(
   state: TournamentState,
   groupMatches: Match[],
   knockoutMatches: Match[],
+  manualTieBreakOrders: ManualTieBreakOrders = state.manualTieBreakOrders,
+  previousSnapshot?: TournamentSnapshot,
 ): TournamentState {
-  const groups = calculateAllGroupStandings(state.teams, groupMatches);
-  const thirdPlaceStandings = buildThirdPlaceWildcardTable(groups);
-  const groupStageComplete = isGroupStageComplete(groupMatches);
+  const prevSnapshot = previousSnapshot ?? state.snapshot;
 
   let nextKnockout = knockoutMatches;
+  let effectiveManualOrders = { ...manualTieBreakOrders };
 
-  if (groupStageComplete) {
-    const rebuilt = rebuildKnockoutBracket(groups, thirdPlaceStandings, knockoutMatches);
+  const interimGroups = calculateAllGroupStandings(
+    state.teams,
+    groupMatches,
+    effectiveManualOrders,
+  );
+
+  for (const group of interimGroups) {
+    const saved = effectiveManualOrders[group.id];
+    if (!saved) continue;
+
+    if (!group.requiresManualTieBreak) {
+      delete effectiveManualOrders[group.id];
+      continue;
+    }
+
+    const deadlockSet = new Set(group.deadlockTeamIds);
+    const orderStillValid =
+      saved.length === group.deadlockTeamIds.length &&
+      saved.every((id) => deadlockSet.has(id));
+
+    if (!orderStillValid) {
+      delete effectiveManualOrders[group.id];
+    }
+  }
+
+  const groupsAfterCleanup = calculateAllGroupStandings(
+    state.teams,
+    groupMatches,
+    effectiveManualOrders,
+  );
+  const interimThird = buildThirdPlaceWildcardTable(groupsAfterCleanup);
+  const interimSnapshot = buildSnapshot(
+    state.teams,
+    groupMatches,
+    knockoutMatches,
+    effectiveManualOrders,
+  );
+
+  if (advancementChanged(prevSnapshot, interimSnapshot)) {
+    nextKnockout = clearDownstreamKnockoutPredictions(knockoutMatches);
+  }
+
+  const groups = groupsAfterCleanup;
+  const thirdPlaceStandings = interimThird;
+  const groupStageComplete = isGroupStageComplete(groupMatches);
+  const canSeedKnockout =
+    groupStageComplete && !hasUnresolvedManualTieBreaks(groups);
+
+  if (canSeedKnockout) {
+    const rebuilt = rebuildKnockoutBracket(groups, thirdPlaceStandings, nextKnockout);
     const prevFingerprint = fingerprintParticipants(knockoutMatches);
     const nextFingerprint = fingerprintParticipants(rebuilt);
 
@@ -65,14 +134,15 @@ function recomputeFromMatches(
   } else if (!groupMatches.some((m) => m.status === 'completed')) {
     nextKnockout = freshKnockout();
   } else {
-    nextKnockout = cascadeKnockoutAdvancement(knockoutMatches);
+    nextKnockout = cascadeKnockoutAdvancement(nextKnockout);
   }
 
   return {
     ...state,
     groupMatches,
     knockoutMatches: nextKnockout,
-    snapshot: buildSnapshot(state.teams, groupMatches, nextKnockout),
+    manualTieBreakOrders: effectiveManualOrders,
+    snapshot: buildSnapshot(state.teams, groupMatches, nextKnockout, effectiveManualOrders),
   };
 }
 
@@ -85,7 +155,8 @@ export function createInitialTournamentState(): TournamentState {
     teams,
     groupMatches,
     knockoutMatches,
-    snapshot: buildSnapshot(teams, groupMatches, knockoutMatches),
+    manualTieBreakOrders: {},
+    snapshot: buildSnapshot(teams, groupMatches, knockoutMatches, {}),
   };
 }
 
@@ -116,7 +187,32 @@ export function updateGroupMatchScore(
       : m,
   );
 
-  return recomputeFromMatches(state, groupMatches, state.knockoutMatches);
+  return recomputeFromMatches(
+    state,
+    groupMatches,
+    state.knockoutMatches,
+    state.manualTieBreakOrders,
+    state.snapshot,
+  );
+}
+
+export function setManualTieBreakOrder(
+  state: TournamentState,
+  groupId: GroupId,
+  orderedTeamIds: string[],
+): TournamentState {
+  const manualTieBreakOrders: ManualTieBreakOrders = {
+    ...state.manualTieBreakOrders,
+    [groupId]: orderedTeamIds,
+  };
+
+  return recomputeFromMatches(
+    state,
+    state.groupMatches,
+    state.knockoutMatches,
+    manualTieBreakOrders,
+    state.snapshot,
+  );
 }
 
 export function updateKnockoutMatchScore(
@@ -154,7 +250,12 @@ export function updateKnockoutMatchScore(
   return {
     ...state,
     knockoutMatches,
-    snapshot: buildSnapshot(state.teams, state.groupMatches, knockoutMatches),
+    snapshot: buildSnapshot(
+      state.teams,
+      state.groupMatches,
+      knockoutMatches,
+      state.manualTieBreakOrders,
+    ),
   };
 }
 
@@ -168,7 +269,13 @@ export function applyOfficialSync(
   const groupMatches = synced.filter((m) => m.phase === 'group');
   const knockoutMatches = synced.filter((m) => m.phase === 'knockout');
 
-  return recomputeFromMatches(state, groupMatches, knockoutMatches);
+  return recomputeFromMatches(
+    state,
+    groupMatches,
+    knockoutMatches,
+    state.manualTieBreakOrders,
+    state.snapshot,
+  );
 }
 
 export function resetTournament(): TournamentState {
@@ -177,36 +284,27 @@ export function resetTournament(): TournamentState {
 
 /** Rebuild snapshot + knockout wiring after bulk match updates or hydration. */
 export function recomputeTournamentState(state: TournamentState): TournamentState {
-  return recomputeFromMatches(state, state.groupMatches, state.knockoutMatches);
+  return recomputeFromMatches(
+    state,
+    state.groupMatches,
+    state.knockoutMatches,
+    state.manualTieBreakOrders,
+  );
 }
 
-const EMPTY_PENALTIES = {
-  homeScored: null,
-  awayScored: null,
-  winnerTeamId: null,
-} as const;
-
 export function autoCompleteGroupStage(state: TournamentState): TournamentState {
-  const teamMap = new Map(state.teams.map((t) => [t.id, t]));
+  return runSimulateGroupStage(state);
+}
 
-  const groupMatches = state.groupMatches.map((match) => {
-    if (match.userHomeScore !== null && match.userAwayScore !== null) {
-      return match;
-    }
+export { simulateGroupStage, simulateToBracketRound } from './simulationEngine';
 
-    const homeTeam = match.homeTeamId ? teamMap.get(match.homeTeamId) : undefined;
-    const awayTeam = match.awayTeamId ? teamMap.get(match.awayTeamId) : undefined;
-    if (!homeTeam || !awayTeam) return match;
+/** Count group matches with both prediction scores set. */
+export function countGroupPredictions(groupMatches: Match[]): number {
+  return groupMatches.filter(
+    (m) => m.userHomeScore !== null && m.userAwayScore !== null,
+  ).length;
+}
 
-    const simulated = simulateGroupMatchScore(homeTeam, awayTeam);
-
-    return {
-      ...match,
-      userHomeScore: simulated.userHomeScore,
-      userAwayScore: simulated.userAwayScore,
-      penalties: { ...EMPTY_PENALTIES },
-    };
-  });
-
-  return recomputeFromMatches(state, groupMatches, state.knockoutMatches);
+export function isGroupPredictionComplete(groupMatches: Match[]): boolean {
+  return countGroupPredictions(groupMatches) >= 72;
 }

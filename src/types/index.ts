@@ -28,6 +28,14 @@ export type MatchStatus = 'pending' | 'live' | 'completed';
 
 export type AppView = 'groups' | 'knockout';
 
+export type TournamentMode = 'prediction' | 'live';
+
+export interface LiveResultsFeed {
+  version: number;
+  updatedAt: string;
+  matches: OfficialMatchData[];
+}
+
 export interface Team {
   id: string;
   name: string;
@@ -82,7 +90,13 @@ export interface Group {
   id: GroupId;
   teams: Team[];
   standings: GroupStanding[];
+  /** True when FIFA tie-breakers end in a fair-play / lots deadlock for this group. */
+  requiresManualTieBreak: boolean;
+  /** Team ids that must be manually ranked before knockout seeding uses this group. */
+  deadlockTeamIds: string[];
 }
+
+export type ManualTieBreakOrders = Partial<Record<GroupId, string[]>>;
 
 export interface MatchPenalties {
   homeScored: number | null;
@@ -129,6 +143,8 @@ export interface Match {
   advancedTeamId: string | null;
   officialHomeScore: number | null;
   officialAwayScore: number | null;
+  /** Live knockout shootout winner from the official feed (does not overwrite user pick). */
+  officialPenaltyWinnerId?: string | null;
   discipline: MatchDiscipline;
   targetMatchId?: number;
   targetSlot?: 'home' | 'away';
