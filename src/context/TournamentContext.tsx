@@ -26,11 +26,11 @@ interface TournamentContextValue {
   state: TournamentState;
   view: AppView;
   setView: (view: AppView) => void;
-  setGroupScore: (matchId: string, home: number, away: number) => void;
+  setGroupScore: (matchId: string, home: number | null, away: number | null) => void;
   setKnockoutScore: (
     matchId: string,
-    home: number,
-    away: number,
+    home: number | null,
+    away: number | null,
     penaltyWinnerId?: string | null,
   ) => void;
   autoCompleteGroupStage: () => void;
@@ -57,15 +57,15 @@ export function TournamentProvider({ children }: { children: ReactNode }) {
     saveTournamentToStorage(state, view);
   }, [state, view]);
 
-  const setGroupScore = useCallback((matchId: string, home: number, away: number) => {
+  const setGroupScore = useCallback((matchId: string, home: number | null, away: number | null) => {
     setState((prev) => updateGroupMatchScore(prev, matchId, home, away));
   }, [setState]);
 
   const setKnockoutScore = useCallback(
     (
       matchId: string,
-      home: number,
-      away: number,
+      home: number | null,
+      away: number | null,
       penaltyWinnerId?: string | null,
     ) => {
       setState((prev) =>

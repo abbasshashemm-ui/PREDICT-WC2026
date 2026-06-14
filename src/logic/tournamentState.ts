@@ -99,8 +99,8 @@ function fingerprintParticipants(matches: Match[]): string {
 export function updateGroupMatchScore(
   state: TournamentState,
   matchId: string,
-  userHomeScore: number,
-  userAwayScore: number,
+  userHomeScore: number | null,
+  userAwayScore: number | null,
 ): TournamentState {
   const target = state.groupMatches.find((m) => m.id === matchId);
   if (!target) return state;
@@ -122,8 +122,8 @@ export function updateGroupMatchScore(
 export function updateKnockoutMatchScore(
   state: TournamentState,
   matchId: string,
-  userHomeScore: number,
-  userAwayScore: number,
+  userHomeScore: number | null,
+  userAwayScore: number | null,
   penaltyWinnerId?: string | null,
 ): TournamentState {
   const target = state.knockoutMatches.find((m) => m.id === matchId);
@@ -132,7 +132,11 @@ export function updateKnockoutMatchScore(
   let knockoutMatches = state.knockoutMatches.map((m) => {
     if (m.id !== matchId) return m;
 
-    const isDraw = userHomeScore === userAwayScore;
+    const isDraw =
+      userHomeScore !== null &&
+      userAwayScore !== null &&
+      userHomeScore === userAwayScore;
+
     return {
       ...m,
       userHomeScore,
