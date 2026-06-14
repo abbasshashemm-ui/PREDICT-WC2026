@@ -7,11 +7,6 @@
   node_bundler = "esbuild"
 
 [[redirects]]
-  from = "/api/og"
-  to = "/.netlify/functions/og"
-  status = 200
-
-[[redirects]]
   from = "/api/bracket-meta"
   to = "/.netlify/functions/bracket-meta"
   status = 200

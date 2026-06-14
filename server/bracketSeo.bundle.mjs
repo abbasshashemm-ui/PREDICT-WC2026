@@ -6998,11 +6998,10 @@ function hydrateTournamentState(session) {
 }
 
 // src/lib/bracketSeo.ts
-function buildBracketSeoUrls(baseUrl, slug, championName) {
+function buildBracketSeoUrls(baseUrl, slug) {
   const normalizedBase = baseUrl.replace(/\/$/, "");
   const pageUrl = `${normalizedBase}/bracket/${encodeURIComponent(slug)}`;
-  const imageUrl = `${normalizedBase}/api/og?champion=${encodeURIComponent(championName)}`;
-  return { pageUrl, imageUrl };
+  return { pageUrl };
 }
 function buildBracketSeoCopy(userName, championFullName) {
   return {
@@ -7014,14 +7013,9 @@ function escapeHtml(value) {
   return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;");
 }
 function buildBracketMetaHtml(payload, baseUrl) {
-  const { pageUrl, imageUrl } = buildBracketSeoUrls(
-    baseUrl,
-    payload.slug,
-    payload.championName
-  );
+  const { pageUrl } = buildBracketSeoUrls(baseUrl, payload.slug);
   const title = escapeHtml(payload.title);
   const description = escapeHtml(payload.description);
-  const safeImageUrl = escapeHtml(imageUrl);
   const safePageUrl = escapeHtml(pageUrl);
   return `<!doctype html>
 <html lang="en">
@@ -7033,13 +7027,11 @@ function buildBracketMetaHtml(payload, baseUrl) {
     <meta property="og:type" content="website" />
     <meta property="og:title" content="${title}" />
     <meta property="og:description" content="${description}" />
-    <meta property="og:image" content="${safeImageUrl}" />
     <meta property="og:url" content="${safePageUrl}" />
     <meta property="og:site_name" content="WC 2026 Simulator" />
-    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content="${title}" />
     <meta name="twitter:description" content="${description}" />
-    <meta name="twitter:image" content="${safeImageUrl}" />
     <link rel="canonical" href="${safePageUrl}" />
     <meta http-equiv="refresh" content="0;url=${safePageUrl}" />
   </head>

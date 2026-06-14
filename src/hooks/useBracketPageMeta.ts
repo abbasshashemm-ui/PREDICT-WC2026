@@ -41,20 +41,18 @@ export function useBracketPageMeta(): void {
 
     const { title, description } = buildBracketSeoCopy(userName, championFullName);
     const baseUrl = window.location.origin;
-    const { pageUrl, imageUrl } = buildBracketSeoUrls(baseUrl, shareId, championName);
+    const { pageUrl } = buildBracketSeoUrls(baseUrl, shareId);
 
     document.title = title;
     upsertMetaTag('name', 'description', description);
     upsertMetaTag('property', 'og:type', 'website');
     upsertMetaTag('property', 'og:title', title);
     upsertMetaTag('property', 'og:description', description);
-    upsertMetaTag('property', 'og:image', imageUrl);
     upsertMetaTag('property', 'og:url', pageUrl);
     upsertMetaTag('property', 'og:site_name', 'WC 2026 Simulator');
-    upsertMetaTag('name', 'twitter:card', 'summary_large_image');
+    upsertMetaTag('name', 'twitter:card', 'summary');
     upsertMetaTag('name', 'twitter:title', title);
     upsertMetaTag('name', 'twitter:description', description);
-    upsertMetaTag('name', 'twitter:image', imageUrl);
 
     let canonical = document.head.querySelector('link[rel="canonical"]');
     if (!canonical) {

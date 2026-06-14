@@ -10,19 +10,13 @@ export interface BracketSeoPayload {
 
 export interface BracketSeoUrls {
   pageUrl: string;
-  imageUrl: string;
 }
 
-export function buildBracketSeoUrls(
-  baseUrl: string,
-  slug: string,
-  championName: string,
-): BracketSeoUrls {
+export function buildBracketSeoUrls(baseUrl: string, slug: string): BracketSeoUrls {
   const normalizedBase = baseUrl.replace(/\/$/, '');
   const pageUrl = `${normalizedBase}/bracket/${encodeURIComponent(slug)}`;
-  const imageUrl = `${normalizedBase}/api/og?champion=${encodeURIComponent(championName)}`;
 
-  return { pageUrl, imageUrl };
+  return { pageUrl };
 }
 
 export function buildBracketSeoCopy(
@@ -48,15 +42,10 @@ export function buildBracketMetaHtml(
   payload: BracketSeoPayload,
   baseUrl: string,
 ): string {
-  const { pageUrl, imageUrl } = buildBracketSeoUrls(
-    baseUrl,
-    payload.slug,
-    payload.championName,
-  );
+  const { pageUrl } = buildBracketSeoUrls(baseUrl, payload.slug);
 
   const title = escapeHtml(payload.title);
   const description = escapeHtml(payload.description);
-  const safeImageUrl = escapeHtml(imageUrl);
   const safePageUrl = escapeHtml(pageUrl);
 
   return `<!doctype html>
@@ -69,13 +58,11 @@ export function buildBracketMetaHtml(
     <meta property="og:type" content="website" />
     <meta property="og:title" content="${title}" />
     <meta property="og:description" content="${description}" />
-    <meta property="og:image" content="${safeImageUrl}" />
     <meta property="og:url" content="${safePageUrl}" />
     <meta property="og:site_name" content="WC 2026 Simulator" />
-    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content="${title}" />
     <meta name="twitter:description" content="${description}" />
-    <meta name="twitter:image" content="${safeImageUrl}" />
     <link rel="canonical" href="${safePageUrl}" />
     <meta http-equiv="refresh" content="0;url=${safePageUrl}" />
   </head>
