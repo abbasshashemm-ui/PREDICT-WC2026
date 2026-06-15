@@ -5,6 +5,7 @@ import { useTournamentLayout } from '../context/TournamentLayoutContext';
 import { useUser } from '../context/UserContext';
 import { getShareSummaryPath } from '../context/tournamentLayoutRoute';
 import { isShareSummaryReady } from '../logic/predictionSummary';
+import { BrandLogoInline } from './BrandLogo';
 import { PerformanceSummary } from './PerformanceSummary';
 import { PremiumPaywall } from './PremiumPaywall';
 
@@ -79,14 +80,7 @@ export function Navbar({
     <header className="sticky top-0 z-50 border-b border-slate-800/80 bg-slate-950/95 backdrop-blur-xl">
       <div className="mx-auto max-w-[100rem] px-4 py-3">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-emerald-400">
-              FIFA World Cup 2026
-            </p>
-            <h1 className="text-lg font-black tracking-tight text-white sm:text-xl">
-              Predictor
-            </h1>
-          </div>
+          <BrandLogoInline />
           <div className="flex flex-wrap items-center gap-2">
             {showAuthActions ? (
               authUsername ? (

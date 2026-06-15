@@ -59,7 +59,7 @@ export function buildBracketMetaHtml(
     <meta property="og:title" content="${title}" />
     <meta property="og:description" content="${description}" />
     <meta property="og:url" content="${safePageUrl}" />
-    <meta property="og:site_name" content="WC 2026 Simulator" />
+    <meta property="og:site_name" content="2026 WC Predictions" />
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content="${title}" />
     <meta name="twitter:description" content="${description}" />
@@ -80,7 +80,7 @@ export function buildFallbackBracketMetaHtml(slug: string, baseUrl: string): str
     championName,
     championFullName: championName,
     championId: null,
-    title: 'World Cup 2026 Bracket — WC 2026 Simulator',
+    title: 'World Cup 2026 Bracket — 2026 WC Predictions',
     description:
       'View a shared FIFA World Cup 2026 prediction bracket and predict your own tournament winner.',
   };

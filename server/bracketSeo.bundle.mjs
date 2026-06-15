@@ -7028,7 +7028,7 @@ function buildBracketMetaHtml(payload, baseUrl) {
     <meta property="og:title" content="${title}" />
     <meta property="og:description" content="${description}" />
     <meta property="og:url" content="${safePageUrl}" />
-    <meta property="og:site_name" content="WC 2026 Simulator" />
+    <meta property="og:site_name" content="2026 WC Predictions" />
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content="${title}" />
     <meta name="twitter:description" content="${description}" />
@@ -7048,7 +7048,7 @@ function buildFallbackBracketMetaHtml(slug, baseUrl) {
     championName,
     championFullName: championName,
     championId: null,
-    title: "World Cup 2026 Bracket \u2014 WC 2026 Simulator",
+    title: "World Cup 2026 Bracket \u2014 2026 WC Predictions",
     description: "View a shared FIFA World Cup 2026 prediction bracket and predict your own tournament winner."
   };
   return buildBracketMetaHtml(payload, baseUrl);

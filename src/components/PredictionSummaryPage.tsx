@@ -13,6 +13,7 @@ import {
 import { getMatchWinner } from '../logic/knockoutBracket';
 import { getCountryAccentGradient, getUserDisplayName } from '../utils/shareCard';
 import { getFlagUrl } from '../utils/flags';
+import { BrandLogoInline } from './BrandLogo';
 import { WorldCupTrophy } from './WorldCupTrophy';
 import type { Match, Team } from '../types';
 
@@ -242,10 +243,10 @@ function MobilePoster({
   return (
     <div className="flex h-full flex-col md:hidden">
       <header className="flex items-center justify-between border-b border-white/[0.06] px-4 py-3">
-        <div>
-          <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-emerald-400">WC 2026</p>
-          <p className={`text-sm font-black ${metallicText()}`}>Predictor</p>
-        </div>
+        <BrandLogoInline
+          markClassName="h-8 w-8"
+          wordmarkClassName="text-[8px]"
+        />
         <p className={`max-w-[55%] text-right text-xs font-bold ${metallicText()}`}>
           {userName}&apos;s Official Bracket
         </p>
@@ -384,6 +385,12 @@ export function PredictionSummaryPage() {
           >
             <span aria-hidden>←</span> Back
           </button>
+
+          <BrandLogoInline
+            className="hidden sm:flex"
+            markClassName="h-8 w-8"
+            wordmarkClassName="text-[8px]"
+          />
 
           <label className="hidden min-w-0 flex-1 items-center justify-center gap-2 sm:flex">
             <span className="text-[10px] uppercase tracking-wider text-slate-500">Display name</span>

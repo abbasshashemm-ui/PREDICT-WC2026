@@ -1,5 +1,6 @@
 import { hasEffectiveResult } from '../logic/matchScores';
 import { useTournament } from '../context/TournamentContext';
+import { BrandLogoInline } from './BrandLogo';
 import { ViewToggle } from './ViewToggle';
 
 export function AppHeader() {
@@ -10,11 +11,11 @@ export function AppHeader() {
     <header className="border-b border-slate-800 bg-slate-950/80 backdrop-blur">
       <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-5 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-400">
-            FIFA World Cup 2026
-          </p>
-          <h1 className="text-2xl font-bold text-white sm:text-3xl">Tournament Simulator</h1>
-          <p className="mt-1 text-sm text-slate-400">
+          <BrandLogoInline
+            markClassName="h-11 w-11 sm:h-12 sm:w-12"
+            wordmarkClassName="text-xs sm:text-sm"
+          />
+          <p className="mt-2 text-sm text-slate-400">
             {completed}/72 group matches entered
             {state.snapshot.groupStageComplete ? ' · Bracket locked' : ''}
           </p>

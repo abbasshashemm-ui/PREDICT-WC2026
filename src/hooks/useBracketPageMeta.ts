@@ -49,7 +49,7 @@ export function useBracketPageMeta(): void {
     upsertMetaTag('property', 'og:title', title);
     upsertMetaTag('property', 'og:description', description);
     upsertMetaTag('property', 'og:url', pageUrl);
-    upsertMetaTag('property', 'og:site_name', 'WC 2026 Simulator');
+    upsertMetaTag('property', 'og:site_name', '2026 WC Predictions');
     upsertMetaTag('name', 'twitter:card', 'summary');
     upsertMetaTag('name', 'twitter:title', title);
     upsertMetaTag('name', 'twitter:description', description);

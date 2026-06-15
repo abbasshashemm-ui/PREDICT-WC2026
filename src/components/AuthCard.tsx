@@ -5,6 +5,7 @@ import {
   isValidUsername,
   normalizeUsernameInput,
 } from '../lib/supabase/usernameAuth';
+import { BrandLogo } from './BrandLogo';
 
 type AuthMode = 'sign-in' | 'sign-up';
 
@@ -133,13 +134,17 @@ export function AuthCard({ onSuccess, onClose, className = '' }: AuthCardProps) 
       className={`bg-white/[0.02] backdrop-blur-xl border border-white/[0.08] p-8 rounded-2xl max-w-md w-full shadow-2xl ${className}`}
     >
       <div className="mb-6 flex items-start justify-between gap-3">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-emerald-400/90">
-            WC 2026 Predictor
-          </p>
+        <div className="min-w-0 flex-1">
+          <BrandLogo
+            variant="full"
+            className="items-start"
+            markClassName="h-12 w-12"
+            wordmarkClassName="text-left text-[10px]"
+            wordmarkAlign="left"
+          />
           <h2
             key={mode}
-            className="mt-1 text-2xl font-black tracking-tight text-white transition-opacity duration-300"
+            className="mt-4 text-2xl font-black tracking-tight text-white transition-opacity duration-300"
           >
             {title}
           </h2>
