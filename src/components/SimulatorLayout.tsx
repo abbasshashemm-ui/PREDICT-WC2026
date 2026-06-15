@@ -13,14 +13,23 @@ import { useBracketPageMeta } from '../hooks/useBracketPageMeta';
 import { useUser } from '../context/UserContext';
 
 export function SimulatorLayout() {
-  const { state, view, setView, isLiveMode } = useTournament();
+  const { state, view, setView, isLiveMode, isReadOnly } = useTournament();
   const { isGroupStageComplete } = useTournamentLayout();
   const { isPremium } = useUser();
-  const { isConfigured, isLoading, profile, signOut } = useSupabaseAuth();
+  const { isConfigured, isLoading, profile, signOut, user } = useSupabaseAuth();
   const [showAuthCard, setShowAuthCard] = useState(false);
   const groupStageComplete = state.snapshot.groupStageComplete;
+  const showAuthGate = isConfigured && !isLoading && !user && !isReadOnly;
 
   useBracketPageMeta();
+
+  if (showAuthGate) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-slate-950 px-4 py-10 text-slate-100">
+        <AuthCard className="shadow-2xl" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">

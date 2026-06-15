@@ -26,6 +26,7 @@ import {
   setManualTieBreakOrder,
   simulateGroupStage,
   simulateToBracketRound,
+  submitMatchPrediction,
   updateGroupMatchScore,
   updateKnockoutMatchScore,
   type TournamentState,
@@ -64,6 +65,7 @@ interface TournamentContextValue {
   liveLastSyncedAt: string | null;
   liveSyncError: string | null;
   isMatchEditable: (matchId: string) => boolean;
+  submitPrediction: (matchId: string) => void;
   setView: (view: AppView) => void;
   setActiveBracketRound: (round: BracketRoundId) => void;
   setTournamentMode: (mode: TournamentMode) => void;
@@ -213,7 +215,7 @@ export function TournamentProvider({ children }: { children: ReactNode }) {
     stopSyncRef.current?.();
     stopSyncRef.current = null;
 
-    if (!useRealWorldData || isReadOnly) return;
+    if (isReadOnly) return;
 
     stopSyncRef.current = startLiveSyncEngine(
       DEFAULT_LIVE_SYNC_ENGINE_CONFIG,
@@ -229,7 +231,7 @@ export function TournamentProvider({ children }: { children: ReactNode }) {
       stopSyncRef.current?.();
       stopSyncRef.current = null;
     };
-  }, [useRealWorldData, isReadOnly, setState]);
+  }, [isReadOnly, setState]);
 
   const performance = useMemo(() => {
     const userPredictions = [...state.groupMatches, ...state.knockoutMatches];
@@ -246,10 +248,19 @@ export function TournamentProvider({ children }: { children: ReactNode }) {
         state.groupMatches.find((m) => m.id === matchId) ??
         state.knockoutMatches.find((m) => m.id === matchId);
       if (!match) return false;
+      if (match.predictionSubmitted) return false;
       if (isMatchLocked(match)) return false;
       return true;
     },
     [isReadOnly, state.groupMatches, state.knockoutMatches],
+  );
+
+  const submitPrediction = useCallback(
+    (matchId: string) => {
+      if (isReadOnly) return;
+      setState((prev) => submitMatchPrediction(prev, matchId));
+    },
+    [isReadOnly, setState],
   );
 
   const setGroupScore = useCallback(
@@ -336,6 +347,7 @@ export function TournamentProvider({ children }: { children: ReactNode }) {
       liveLastSyncedAt,
       liveSyncError,
       isMatchEditable,
+      submitPrediction,
       setView,
       setActiveBracketRound,
       setTournamentMode,
@@ -361,6 +373,7 @@ export function TournamentProvider({ children }: { children: ReactNode }) {
       liveLastSyncedAt,
       liveSyncError,
       isMatchEditable,
+      submitPrediction,
       setView,
       setActiveBracketRound,
       setTournamentMode,

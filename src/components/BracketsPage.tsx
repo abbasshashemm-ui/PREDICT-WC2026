@@ -3,6 +3,7 @@ import type { Match, MatchStage, Team } from '../types';
 import { useTournament } from '../context/TournamentContext';
 import { useTournamentLayout } from '../context/TournamentLayoutContext';
 import type { MatchPerformanceEvaluation } from '../logic/evaluateUserPerformance';
+import { canSubmitPrediction } from '../logic/predictionSubmit';
 import {
   BRACKET_ROUND_META,
   BRACKET_ROUND_ORDER,
@@ -21,7 +22,6 @@ import { formatSlotLabel } from '../utils/slotLabels';
 import { BracketNodeProvider } from '../context/BracketNodeContext';
 import { BracketPathways } from './BracketPathways';
 import { useMobileViewport } from '../hooks/useMobileViewport';
-import { MobileMatchDrawer } from './MobileMatchDrawer';
 
 interface BracketRoundConfig {
   id: BracketRoundId;
@@ -68,6 +68,7 @@ interface TeamRowProps {
   isLoser?: boolean;
   anchorRef?: (element: HTMLElement | null) => void;
   showInlineInput?: boolean;
+  inputSizeClass?: string;
 }
 
 const TeamRow = memo(function TeamRow({
@@ -83,6 +84,7 @@ const TeamRow = memo(function TeamRow({
   isLoser = false,
   anchorRef,
   showInlineInput = true,
+  inputSizeClass = 'h-8 w-10 text-sm',
 }: TeamRowProps) {
   const borderAccent =
     accent === 'gold'
@@ -124,7 +126,7 @@ const TeamRow = memo(function TeamRow({
         </span>
       )}
       {isReadOnly || !showInlineInput ? (
-        <span className="flex h-8 w-10 shrink-0 items-center justify-center text-sm font-bold text-white">
+        <span className={`flex shrink-0 items-center justify-center font-bold text-white ${inputSizeClass}`}>
           {score ?? '–'}
         </span>
       ) : (
@@ -138,7 +140,7 @@ const TeamRow = memo(function TeamRow({
           placeholder="–"
           onChange={(e) => onScoreChange(e.target.value)}
           onKeyUp={onScoreKeyUp}
-          className="h-8 w-10 shrink-0 rounded-md border border-slate-600 bg-slate-950 text-center text-sm font-bold text-white transition focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400/40 disabled:cursor-not-allowed disabled:opacity-40"
+          className={`shrink-0 rounded-md border border-slate-600 bg-slate-950 text-center font-bold text-white transition focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400/40 disabled:cursor-not-allowed disabled:opacity-40 ${inputSizeClass}`}
           aria-label={team ? `${team.fullName} score` : 'Score'}
         />
       )}
@@ -154,7 +156,7 @@ interface BracketMatchCardProps {
   isMatchEditable: (matchId: string) => boolean;
   evaluation?: MatchPerformanceEvaluation;
   isMobile: boolean;
-  onOpenDrawer: (matchId: string) => void;
+  onSubmitPrediction: (matchId: string) => void;
   onScoreChange: (
     matchId: string,
     home: number | null,
@@ -171,19 +173,18 @@ const BracketMatchCard = memo(function BracketMatchCard({
   isMatchEditable,
   evaluation,
   isMobile,
-  onOpenDrawer,
+  onSubmitPrediction,
   onScoreChange,
 }: BracketMatchCardProps) {
   const awayRef = useRef<HTMLInputElement>(null);
   const homeTeam = teamById(teams, match.homeTeamId);
   const awayTeam = teamById(teams, match.awayTeamId);
-  const canPlay = Boolean(homeTeam && awayTeam);
   const matchEditable = isMatchEditable(match.id) && !isReadOnly;
-  const useDrawer = isMobile && matchEditable && !isLiveMode;
-  const showInlineInput = !useDrawer;
+  const inputSizeClass = isMobile ? 'h-10 w-11 text-base' : 'h-8 w-10 text-sm';
+  const readyToSubmit = canSubmitPrediction(match);
 
   const isDraw =
-    canPlay &&
+    Boolean(homeTeam && awayTeam) &&
     match.userHomeScore !== null &&
     match.userAwayScore !== null &&
     match.userHomeScore === match.userAwayScore;
@@ -250,28 +251,25 @@ const BracketMatchCard = memo(function BracketMatchCard({
       data-match-id={match.matchId}
       className={`relative z-[1] rounded-xl border bg-gradient-to-br from-slate-900/90 to-slate-950/90 p-3 shadow-lg transition-all hover:shadow-emerald-500/5 ${borderTone} ${
         isDecided && !isLiveMode ? 'bracket-card-progression' : ''
-      } ${useDrawer ? 'cursor-pointer active:scale-[0.99]' : ''}`}
-      onClick={() => {
-        if (useDrawer && canPlay) onOpenDrawer(match.id);
-      }}
-      onKeyDown={(event) => {
-        if (useDrawer && canPlay && (event.key === 'Enter' || event.key === ' ')) {
-          event.preventDefault();
-          onOpenDrawer(match.id);
-        }
-      }}
-      role={useDrawer ? 'button' : undefined}
-      tabIndex={useDrawer ? 0 : undefined}
+      }`}
     >
       <div className="mb-2 flex items-center justify-between">
         <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400/90">
           Match {match.matchId}
         </span>
         <div className="flex items-center gap-2">
-          {useDrawer ? (
-            <span className="text-[9px] font-semibold uppercase tracking-wide text-emerald-500/80">
-              Tap to score
+          {match.predictionSubmitted ? (
+            <span className="text-[9px] font-semibold uppercase tracking-wide text-slate-500">
+              Locked
             </span>
+          ) : readyToSubmit ? (
+            <button
+              type="button"
+              onClick={() => onSubmitPrediction(match.id)}
+              className="rounded-md bg-emerald-500 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-slate-950 transition hover:bg-emerald-400"
+            >
+              Submit
+            </button>
           ) : null}
           <span className="text-[9px] uppercase tracking-wider text-slate-500">{match.stage}</span>
         </div>
@@ -289,7 +287,8 @@ const BracketMatchCard = memo(function BracketMatchCard({
           isWinner={homeIsWinner}
           isLoser={homeIsLoser}
           anchorRef={homeAnchorRef}
-          showInlineInput={showInlineInput}
+          showInlineInput
+          inputSizeClass={inputSizeClass}
         />
         <div className="flex items-center justify-center">
           <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-600">vs</span>
@@ -305,11 +304,12 @@ const BracketMatchCard = memo(function BracketMatchCard({
           isWinner={awayIsWinner}
           isLoser={awayIsLoser}
           anchorRef={awayAnchorRef}
-          showInlineInput={showInlineInput}
+          showInlineInput
+          inputSizeClass={inputSizeClass}
         />
       </div>
 
-      {isDraw && matchEditable && !isLiveMode && showInlineInput ? (
+      {isDraw && matchEditable && !isLiveMode ? (
         <div className="mt-3 rounded-lg border border-amber-500/25 bg-amber-500/5 p-2.5">
           <p className="mb-2 text-center text-[9px] font-bold uppercase tracking-widest text-amber-300">
             Penalty shootout — select advancer
@@ -359,7 +359,7 @@ interface BracketColumnProps {
   performanceByMatchId: Record<number, MatchPerformanceEvaluation>;
   columnRef?: (el: HTMLDivElement | null) => void;
   isMobile: boolean;
-  onOpenDrawer: (matchId: string) => void;
+  onSubmitPrediction: (matchId: string) => void;
   onScoreChange: BracketMatchCardProps['onScoreChange'];
 }
 
@@ -373,7 +373,7 @@ const BracketColumn = memo(function BracketColumn({
   performanceByMatchId,
   columnRef,
   isMobile,
-  onOpenDrawer,
+  onSubmitPrediction,
   onScoreChange,
 }: BracketColumnProps) {
   const roundMatches = useMemo(
@@ -407,7 +407,7 @@ const BracketColumn = memo(function BracketColumn({
             isMatchEditable={isMatchEditable}
             evaluation={performanceByMatchId[match.matchId]}
             isMobile={isMobile}
-            onOpenDrawer={onOpenDrawer}
+            onSubmitPrediction={onSubmitPrediction}
             onScoreChange={onScoreChange}
           />
         ))}
@@ -417,21 +417,22 @@ const BracketColumn = memo(function BracketColumn({
 });
 
 export function BracketsPage() {
-  const { state, setKnockoutScore, isLiveMode, performance, setActiveBracketRound, isMatchEditable } =
-    useTournament();
+  const {
+    state,
+    setKnockoutScore,
+    isLiveMode,
+    performance,
+    setActiveBracketRound,
+    isMatchEditable,
+    submitPrediction,
+  } = useTournament();
   const { isReadOnly, isGroupStageComplete, predictedGroupCount } = useTournamentLayout();
   const isMobile = useMobileViewport();
-  const [drawerMatchId, setDrawerMatchId] = useState<string | null>(null);
   const { teams, knockoutMatches } = state;
   const { championId } = state.snapshot;
   const champion = championId ? teams.find((t) => t.id === championId) : undefined;
   const bracketLocked = !isGroupStageComplete;
   const inputsLocked = isReadOnly || bracketLocked;
-
-  const drawerMatch = useMemo(
-    () => knockoutMatches.find((match) => match.id === drawerMatchId) ?? null,
-    [drawerMatchId, knockoutMatches],
-  );
 
   const [activeRound, setActiveRound] = useState<BracketRoundId>('r32');
   const columnRefs = useRef<Record<BracketRoundId, HTMLDivElement | null>>({
@@ -468,10 +469,10 @@ export function BracketsPage() {
     <div className="relative space-y-5 pb-10">
       {bracketLocked ? (
         <div className="rounded-xl border border-slate-700/80 bg-slate-900/80 px-4 py-3 text-center text-sm text-slate-300">
-          Predict all <span className="font-bold text-white">72</span> group-stage matches to
-          unlock the knockout bracket.
+          Predict and submit all <span className="font-bold text-white">72</span> group-stage
+          matches to unlock the knockout bracket.
           <span className="mt-1 block text-xs text-slate-500">
-            {predictedGroupCount} / 72 complete
+            {predictedGroupCount} / 72 submitted
           </span>
         </div>
       ) : null}
@@ -549,7 +550,7 @@ export function BracketsPage() {
                     columnRefs.current[round.id] = el;
                   }}
                   isMobile={isMobile}
-                  onOpenDrawer={setDrawerMatchId}
+                  onSubmitPrediction={submitPrediction}
                   onScoreChange={setKnockoutScore}
                 />
               ))}
@@ -570,7 +571,7 @@ export function BracketsPage() {
               Bracket locked
             </p>
             <p className="mt-2 text-sm text-slate-200">
-              Finish the group stage ({predictedGroupCount}/72 predictions) before editing
+              Finish the group stage ({predictedGroupCount}/72 submitted) before editing
               knockout matches.
             </p>
           </div>
@@ -588,19 +589,6 @@ export function BracketsPage() {
           </p>
         </div>
       ) : null}
-
-      <MobileMatchDrawer
-        match={drawerMatch}
-        teams={teams}
-        open={drawerMatch !== null}
-        readOnly={!drawerMatch || !isMatchEditable(drawerMatch.id)}
-        onClose={() => setDrawerMatchId(null)}
-        onScoreChange={(home, away, penaltyWinnerId) => {
-          if (drawerMatch) {
-            setKnockoutScore(drawerMatch.id, home, away, penaltyWinnerId);
-          }
-        }}
-      />
     </div>
   );
 }

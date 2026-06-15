@@ -96,9 +96,7 @@ export async function runLiveSync(
   }
 
   const state = buildRealTournamentState(matches, source);
-  const rows = matches
-    .filter((match) => match.realStatus === 'LIVE' || match.realStatus === 'FT')
-    .map(toRow);
+  const rows = matches.map(toRow);
 
   let persisted = false;
   try {

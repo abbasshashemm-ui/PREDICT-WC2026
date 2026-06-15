@@ -31,6 +31,7 @@ import {
   rebuildKnockoutBracket,
 } from './knockoutBracket';
 import { syncUserBracketWithRealWorld } from './syncBracket';
+import { isPredictionComplete } from './predictionSubmit';
 import { simulateGroupStage as runSimulateGroupStage } from './simulationEngine';
 
 export interface TournamentState {
@@ -259,6 +260,40 @@ export function updateKnockoutMatchScore(
   };
 }
 
+function submitMatchInList(matches: Match[], matchId: string): Match[] {
+  return matches.map((match) => {
+    if (match.id !== matchId) return match;
+    if (match.predictionSubmitted || !isPredictionComplete(match)) return match;
+    return {
+      ...match,
+      predictionSubmitted: true,
+      submittedAt: new Date().toISOString(),
+    };
+  });
+}
+
+export function submitMatchPrediction(
+  state: TournamentState,
+  matchId: string,
+): TournamentState {
+  const inGroup = state.groupMatches.some((m) => m.id === matchId);
+  const inKnockout = state.knockoutMatches.some((m) => m.id === matchId);
+  if (!inGroup && !inKnockout) return state;
+
+  const groupMatches = inGroup ? submitMatchInList(state.groupMatches, matchId) : state.groupMatches;
+  const knockoutMatches = inKnockout
+    ? submitMatchInList(state.knockoutMatches, matchId)
+    : state.knockoutMatches;
+
+  return recomputeFromMatches(
+    state,
+    groupMatches,
+    knockoutMatches,
+    state.manualTieBreakOrders,
+    state.snapshot,
+  );
+}
+
 export function applyOfficialSync(
   state: TournamentState,
   officialMatchData: OfficialMatchData[],
@@ -298,11 +333,9 @@ export function autoCompleteGroupStage(state: TournamentState): TournamentState 
 
 export { simulateGroupStage, simulateToBracketRound } from './simulationEngine';
 
-/** Count group matches with both prediction scores set. */
+/** Count group matches with submitted predictions. */
 export function countGroupPredictions(groupMatches: Match[]): number {
-  return groupMatches.filter(
-    (m) => m.userHomeScore !== null && m.userAwayScore !== null,
-  ).length;
+  return groupMatches.filter((m) => m.predictionSubmitted).length;
 }
 
 export function isGroupPredictionComplete(groupMatches: Match[]): boolean {

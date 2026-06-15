@@ -14,15 +14,11 @@ const EMPTY_PENALTIES = {
 } as const;
 
 function isGroupMatchUnpredicted(match: Match): boolean {
-  return match.userHomeScore === null || match.userAwayScore === null;
+  return !match.predictionSubmitted;
 }
 
 export function isKnockoutMatchPredicted(match: Match): boolean {
-  if (match.userHomeScore === null || match.userAwayScore === null) return false;
-  if (match.userHomeScore === match.userAwayScore) {
-    return match.penalties.winnerTeamId !== null;
-  }
-  return true;
+  return match.predictionSubmitted;
 }
 
 function canSimulateKnockoutMatch(match: Match): boolean {

@@ -27,14 +27,7 @@ export interface BracketPathStep {
 }
 
 function isMatchFullyPredicted(match: Match): boolean {
-  if (match.userHomeScore === null || match.userAwayScore === null) return false;
-  if (
-    match.phase === 'knockout' &&
-    match.userHomeScore === match.userAwayScore
-  ) {
-    return match.penalties.winnerTeamId !== null;
-  }
-  return true;
+  return match.predictionSubmitted;
 }
 
 export function isShareSummaryReady(

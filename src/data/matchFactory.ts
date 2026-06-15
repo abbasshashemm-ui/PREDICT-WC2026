@@ -33,6 +33,8 @@ export function definitionToMatch(def: MatchDefinition): Match {
     realAwayScore: null,
     realExtraTime: false,
     realPenaltyWinner: null,
+    predictionSubmitted: false,
+    submittedAt: null,
     userHomeScore: null,
     userAwayScore: null,
     extraTime: false,

@@ -106,7 +106,7 @@ export function SimulationControl() {
         </p>
       ) : (
         <p className="mx-auto max-w-[100rem] px-3 pb-1 text-[9px] text-slate-500">
-          Group: {predictedGroupCount}/72
+          Group: {predictedGroupCount}/72 submitted
           {view === 'knockout' ? ` · ${roundLabel}` : ' · Open Knockout for round targeting'}
         </p>
       )}

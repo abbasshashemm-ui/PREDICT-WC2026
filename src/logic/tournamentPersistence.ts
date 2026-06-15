@@ -13,6 +13,8 @@ interface PersistedMatchScores {
   userHomeScore: number | null;
   userAwayScore: number | null;
   penalties: MatchPenalties;
+  predictionSubmitted?: boolean;
+  submittedAt?: string | null;
 }
 
 export interface PersistedTournamentSession {
@@ -33,6 +35,8 @@ function extractMatchScores(matches: Match[]): Record<string, PersistedMatchScor
       userHomeScore: match.userHomeScore,
       userAwayScore: match.userAwayScore,
       penalties: { ...match.penalties },
+      predictionSubmitted: match.predictionSubmitted,
+      submittedAt: match.submittedAt,
     };
   }
   return out;
@@ -67,6 +71,8 @@ function applyScoresToMatches(
       userHomeScore: persisted.userHomeScore,
       userAwayScore: persisted.userAwayScore,
       penalties: { ...persisted.penalties },
+      predictionSubmitted: persisted.predictionSubmitted ?? false,
+      submittedAt: persisted.submittedAt ?? null,
     };
   });
 }

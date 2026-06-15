@@ -60,8 +60,8 @@ var INITIAL_MATCH_DEFINITIONS = [
     "stage": "Group",
     "groupId": "D",
     "matchday": 1,
-    "homeTeam": "D3",
-    "awayTeam": "D4",
+    "homeTeam": "D2",
+    "awayTeam": "D3",
     "date": "2026-06-14",
     "kickoffTime": "2026-06-14T04:00:00Z",
     "venue": "BC Place, Vancouver"
@@ -347,7 +347,7 @@ var INITIAL_MATCH_DEFINITIONS = [
     "groupId": "D",
     "matchday": 2,
     "homeTeam": "D1",
-    "awayTeam": "D3",
+    "awayTeam": "D2",
     "date": "2026-06-19",
     "kickoffTime": "2026-06-19T19:00:00Z",
     "venue": "Lumen Field, Seattle"
@@ -655,7 +655,7 @@ var INITIAL_MATCH_DEFINITIONS = [
     "groupId": "D",
     "matchday": 3,
     "homeTeam": "D4",
-    "awayTeam": "D3",
+    "awayTeam": "D2",
     "date": "2026-06-26",
     "kickoffTime": "2026-06-26T02:00:00Z",
     "venue": "Levi's Stadium, Santa Clara"
@@ -1174,8 +1174,237 @@ function resolveMatchIdFromApiFootballFixture(fixtureId) {
 function resolveMatchIdFromEspnEvent(eventId) {
   return byEspnId.get(eventId)?.matchId ?? null;
 }
+function registerApiFootballFixture(fixtureId, matchId) {
+  const row = byMatchId.get(matchId);
+  if (!row) return;
+  row.apiFootballFixtureId = fixtureId;
+  byApiFootballId.set(fixtureId, row);
+}
+function registerEspnEvent(eventId, matchId) {
+  const row = byMatchId.get(matchId);
+  if (!row) return;
+  row.espnEventId = eventId;
+  byEspnId.set(eventId, row);
+}
 function getLockTimeForMatch(matchId) {
   return byMatchId.get(matchId)?.lockTime ?? null;
+}
+
+// src/types/index.ts
+var GROUP_IDS = [
+  "A",
+  "B",
+  "C",
+  "D",
+  "E",
+  "F",
+  "G",
+  "H",
+  "I",
+  "J",
+  "K",
+  "L"
+];
+
+// src/data/teams.ts
+var TEAM_META = {
+  A: [
+    { name: "Mexico", fullName: "Mexico", countryCode: "mx", flagEmoji: "\u{1F1F2}\u{1F1FD}", fifaRanking: 13 },
+    { name: "South Korea", fullName: "South Korea", countryCode: "kr", flagEmoji: "\u{1F1F0}\u{1F1F7}", fifaRanking: 19 },
+    { name: "Czechia", fullName: "Czechia", countryCode: "cz", flagEmoji: "\u{1F1E8}\u{1F1FF}", fifaRanking: 29 },
+    { name: "South Africa", fullName: "South Africa", countryCode: "za", flagEmoji: "\u{1F1FF}\u{1F1E6}", fifaRanking: 34 }
+  ],
+  B: [
+    { name: "Canada", fullName: "Canada", countryCode: "ca", flagEmoji: "\u{1F1E8}\u{1F1E6}", fifaRanking: 38 },
+    { name: "Switzerland", fullName: "Switzerland", countryCode: "ch", flagEmoji: "\u{1F1E8}\u{1F1ED}", fifaRanking: 16 },
+    { name: "Qatar", fullName: "Qatar", countryCode: "qa", flagEmoji: "\u{1F1F6}\u{1F1E6}", fifaRanking: 37 },
+    { name: "Bosnia and Herzegovina", fullName: "Bosnia and Herzegovina", countryCode: "ba", flagEmoji: "\u{1F1E7}\u{1F1E6}", fifaRanking: 42 }
+  ],
+  C: [
+    { name: "Brazil", fullName: "Brazil", countryCode: "br", flagEmoji: "\u{1F1E7}\u{1F1F7}", fifaRanking: 5 },
+    { name: "Morocco", fullName: "Morocco", countryCode: "ma", flagEmoji: "\u{1F1F2}\u{1F1E6}", fifaRanking: 12 },
+    { name: "Scotland", fullName: "Scotland", countryCode: "gb-sct", flagEmoji: "\u{1F3F4}\u{E0067}\u{E0062}\u{E0073}\u{E0063}\u{E0074}\u{E007F}", fifaRanking: 29 },
+    { name: "Haiti", fullName: "Haiti", countryCode: "ht", flagEmoji: "\u{1F1ED}\u{1F1F9}", fifaRanking: 40 }
+  ],
+  D: [
+    { name: "USA", fullName: "United States", countryCode: "us", flagEmoji: "\u{1F1FA}\u{1F1F8}", fifaRanking: 14 },
+    { name: "Paraguay", fullName: "Paraguay", countryCode: "py", flagEmoji: "\u{1F1F5}\u{1F1FE}", fifaRanking: 30 },
+    { name: "Australia", fullName: "Australia", countryCode: "au", flagEmoji: "\u{1F1E6}\u{1F1FA}", fifaRanking: 22 },
+    { name: "Turkey", fullName: "Turkey", countryCode: "tr", flagEmoji: "\u{1F1F9}\u{1F1F7}", fifaRanking: 31 }
+  ],
+  E: [
+    { name: "Germany", fullName: "Germany", countryCode: "de", flagEmoji: "\u{1F1E9}\u{1F1EA}", fifaRanking: 9 },
+    { name: "Cura\xE7ao", fullName: "Cura\xE7ao", countryCode: "cw", flagEmoji: "\u{1F1E8}\u{1F1FC}", fifaRanking: 41 },
+    { name: "Ivory Coast", fullName: "Ivory Coast", countryCode: "ci", flagEmoji: "\u{1F1E8}\u{1F1EE}", fifaRanking: 28 },
+    { name: "Ecuador", fullName: "Ecuador", countryCode: "ec", flagEmoji: "\u{1F1EA}\u{1F1E8}", fifaRanking: 20 }
+  ],
+  F: [
+    { name: "Netherlands", fullName: "Netherlands", countryCode: "nl", flagEmoji: "\u{1F1F3}\u{1F1F1}", fifaRanking: 7 },
+    { name: "Japan", fullName: "Japan", countryCode: "jp", flagEmoji: "\u{1F1EF}\u{1F1F5}", fifaRanking: 15 },
+    { name: "Sweden", fullName: "Sweden", countryCode: "se", flagEmoji: "\u{1F1F8}\u{1F1EA}", fifaRanking: 24 },
+    { name: "Tunisia", fullName: "Tunisia", countryCode: "tn", flagEmoji: "\u{1F1F9}\u{1F1F3}", fifaRanking: 31 }
+  ],
+  G: [
+    { name: "Belgium", fullName: "Belgium", countryCode: "be", flagEmoji: "\u{1F1E7}\u{1F1EA}", fifaRanking: 8 },
+    { name: "Egypt", fullName: "Egypt", countryCode: "eg", flagEmoji: "\u{1F1EA}\u{1F1EC}", fifaRanking: 25 },
+    { name: "Iran", fullName: "Iran", countryCode: "ir", flagEmoji: "\u{1F1EE}\u{1F1F7}", fifaRanking: 18 },
+    { name: "New Zealand", fullName: "New Zealand", countryCode: "nz", flagEmoji: "\u{1F1F3}\u{1F1FF}", fifaRanking: 39 }
+  ],
+  H: [
+    { name: "Spain", fullName: "Spain", countryCode: "es", flagEmoji: "\u{1F1EA}\u{1F1F8}", fifaRanking: 3 },
+    { name: "Cape Verde", fullName: "Cape Verde", countryCode: "cv", flagEmoji: "\u{1F1E8}\u{1F1FB}", fifaRanking: 32 },
+    { name: "Saudi Arabia", fullName: "Saudi Arabia", countryCode: "sa", flagEmoji: "\u{1F1F8}\u{1F1E6}", fifaRanking: 37 },
+    { name: "Uruguay", fullName: "Uruguay", countryCode: "uy", flagEmoji: "\u{1F1FA}\u{1F1FE}", fifaRanking: 10 }
+  ],
+  I: [
+    { name: "France", fullName: "France", countryCode: "fr", flagEmoji: "\u{1F1EB}\u{1F1F7}", fifaRanking: 2 },
+    { name: "Senegal", fullName: "Senegal", countryCode: "sn", flagEmoji: "\u{1F1F8}\u{1F1F3}", fifaRanking: 17 },
+    { name: "Iraq", fullName: "Iraq", countryCode: "iq", flagEmoji: "\u{1F1EE}\u{1F1F6}", fifaRanking: 47 },
+    { name: "Norway", fullName: "Norway", countryCode: "no", flagEmoji: "\u{1F1F3}\u{1F1F4}", fifaRanking: 23 }
+  ],
+  J: [
+    { name: "Argentina", fullName: "Argentina", countryCode: "ar", flagEmoji: "\u{1F1E6}\u{1F1F7}", fifaRanking: 1 },
+    { name: "Algeria", fullName: "Algeria", countryCode: "dz", flagEmoji: "\u{1F1E9}\u{1F1FF}", fifaRanking: 26 },
+    { name: "Austria", fullName: "Austria", countryCode: "at", flagEmoji: "\u{1F1E6}\u{1F1F9}", fifaRanking: 21 },
+    { name: "Jordan", fullName: "Jordan", countryCode: "jo", flagEmoji: "\u{1F1EF}\u{1F1F4}", fifaRanking: 35 }
+  ],
+  K: [
+    { name: "Portugal", fullName: "Portugal", countryCode: "pt", flagEmoji: "\u{1F1F5}\u{1F1F9}", fifaRanking: 6 },
+    { name: "DR Congo", fullName: "DR Congo", countryCode: "cd", flagEmoji: "\u{1F1E8}\u{1F1E9}", fifaRanking: 46 },
+    { name: "Uzbekistan", fullName: "Uzbekistan", countryCode: "uz", flagEmoji: "\u{1F1FA}\u{1F1FF}", fifaRanking: 36 },
+    { name: "Colombia", fullName: "Colombia", countryCode: "co", flagEmoji: "\u{1F1E8}\u{1F1F4}", fifaRanking: 11 }
+  ],
+  L: [
+    { name: "England", fullName: "England", countryCode: "gb-eng", flagEmoji: "\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}", fifaRanking: 4 },
+    { name: "Croatia", fullName: "Croatia", countryCode: "hr", flagEmoji: "\u{1F1ED}\u{1F1F7}", fifaRanking: 27 },
+    { name: "Ghana", fullName: "Ghana", countryCode: "gh", flagEmoji: "\u{1F1EC}\u{1F1ED}", fifaRanking: 33 },
+    { name: "Panama", fullName: "Panama", countryCode: "pa", flagEmoji: "\u{1F1F5}\u{1F1E6}", fifaRanking: 24 }
+  ]
+};
+function shortName(name) {
+  const map = {
+    "South Korea": "KOR",
+    "South Africa": "RSA",
+    "Bosnia and Herzegovina": "BIH",
+    "Ivory Coast": "CIV",
+    "Cape Verde": "CPV",
+    "Saudi Arabia": "KSA",
+    "New Zealand": "NZL",
+    "DR Congo": "COD",
+    USA: "USA",
+    Czechia: "CZE"
+  };
+  return map[name] ?? name.slice(0, 3).toUpperCase();
+}
+function createTeams() {
+  const teams = [];
+  for (const groupId of GROUP_IDS) {
+    TEAM_META[groupId].forEach((meta, index) => {
+      const id = `${groupId}${index + 1}`;
+      teams.push({
+        id,
+        name: meta.name,
+        fullName: meta.fullName,
+        shortName: shortName(meta.name),
+        countryCode: meta.countryCode,
+        group: groupId,
+        fifaRanking: meta.fifaRanking,
+        flagEmoji: meta.flagEmoji
+      });
+    });
+  }
+  return teams;
+}
+function isGroupSlot(label) {
+  return /^[A-L][1-4]$/.test(label);
+}
+function slotToTeamId(slot) {
+  return isGroupSlot(slot) ? slot : null;
+}
+
+// src/lib/liveSync/fixtureMatcher.ts
+var KICKOFF_TOLERANCE_MS = 4 * 60 * 60 * 1e3;
+function normalizeName(value) {
+  return value.toLowerCase().normalize("NFD").replace(/\p{M}/gu, "").replace(/[^a-z0-9]/g, "");
+}
+var TEAM_ALIASES = {
+  usa: ["unitedstates", "us", "unitedstatesmen"],
+  paraguay: ["par"],
+  australia: ["aus"],
+  turkey: ["tur", "turkiye", "t\xFCrkiye"],
+  mexico: ["mex"],
+  brazil: ["bra"],
+  england: ["eng"],
+  scotland: ["sco", "scotlandmen"],
+  "southkorea": ["korea", "korearepublic", "southkorea"],
+  "southafrica": ["rsa"],
+  "ivorycoast": ["cotedivoire", "cotedivoire"],
+  "drcongo": ["congo", "cod"],
+  "bosniaandherzegovina": ["bosnia", "bih"],
+  "newzealand": ["nzl"],
+  "saudiarabia": ["ksa"],
+  "capeverde": ["cpv"],
+  "curacao": ["cuw"]
+};
+function findTeamByName(name, teams) {
+  const norm = normalizeName(name);
+  if (!norm) return void 0;
+  const direct = teams.find(
+    (team) => normalizeName(team.name) === norm || normalizeName(team.fullName) === norm || normalizeName(team.shortName) === norm
+  );
+  if (direct) return direct;
+  for (const team of teams) {
+    const aliases = TEAM_ALIASES[normalizeName(team.name)] ?? [];
+    if (aliases.includes(norm)) return team;
+  }
+  return teams.find((team) => {
+    const teamNorm = normalizeName(team.name);
+    return teamNorm.includes(norm) || norm.includes(teamNorm);
+  });
+}
+function teamsPairMatchesDefinition(homeTeamId, awayTeamId, homeSlot, awaySlot) {
+  const defHome = slotToTeamId(homeSlot);
+  const defAway = slotToTeamId(awaySlot);
+  if (!defHome || !defAway) return false;
+  return defHome === homeTeamId && defAway === awayTeamId || defHome === awayTeamId && defAway === homeTeamId;
+}
+function resolveMatchIdByTeamsAndKickoff(homeName, awayName, kickoffIso) {
+  const teams = createTeams();
+  const homeTeam = findTeamByName(homeName, teams);
+  const awayTeam = findTeamByName(awayName, teams);
+  if (!homeTeam || !awayTeam) return null;
+  const kickoffMs = Date.parse(kickoffIso);
+  if (Number.isNaN(kickoffMs)) return null;
+  const candidates = INITIAL_MATCH_DEFINITIONS.filter((def) => {
+    const delta = Math.abs(Date.parse(def.kickoffTime) - kickoffMs);
+    return delta <= KICKOFF_TOLERANCE_MS;
+  });
+  for (const def of candidates) {
+    if (def.stage !== "Group") continue;
+    if (teamsPairMatchesDefinition(homeTeam.id, awayTeam.id, def.homeTeam, def.awayTeam)) {
+      return def.matchId;
+    }
+  }
+  const knockoutCandidates = candidates.filter((def) => def.stage !== "Group");
+  if (knockoutCandidates.length === 1) return knockoutCandidates[0].matchId;
+  return null;
+}
+function resolveApiFootballFixtureId(fixture) {
+  const homeName = fixture.teams.home.name ?? "";
+  const awayName = fixture.teams.away.name ?? "";
+  const matchId = resolveMatchIdByTeamsAndKickoff(homeName, awayName, fixture.fixture.date);
+  if (matchId) registerApiFootballFixture(fixture.fixture.id, matchId);
+  return matchId;
+}
+function resolveEspnEventId(event) {
+  const competition = event.competitions?.[0];
+  const competitors = competition?.competitors ?? [];
+  const home = competitors.find((c) => c.homeAway === "home")?.team?.displayName ?? "";
+  const away = competitors.find((c) => c.homeAway === "away")?.team?.displayName ?? "";
+  const kickoff = competition?.date ?? event.date ?? "";
+  const matchId = resolveMatchIdByTeamsAndKickoff(home, away, kickoff);
+  if (matchId) registerEspnEvent(event.id, matchId);
+  return matchId;
 }
 
 // src/lib/liveSync/statusMapping.ts
@@ -1325,7 +1554,7 @@ var LiveDataClient = class {
   }
 };
 function mapApiFootballFixture(fixture) {
-  const matchId = resolveMatchIdFromApiFootballFixture(fixture.fixture.id);
+  const matchId = resolveMatchIdFromApiFootballFixture(fixture.fixture.id) ?? resolveApiFootballFixtureId(fixture);
   if (!matchId) return null;
   const realStatus = mapApiFootballStatus(fixture.fixture.status.short);
   const statusShort = fixture.fixture.status.short.toUpperCase();
@@ -1345,7 +1574,7 @@ function mapApiFootballFixture(fixture) {
   };
 }
 function mapEspnEvent(event) {
-  const matchId = resolveMatchIdFromEspnEvent(event.id);
+  const matchId = resolveMatchIdFromEspnEvent(event.id) ?? resolveEspnEventId(event);
   if (!matchId) return null;
   const competition = event.competitions?.[0];
   const competitors = competition?.competitors ?? [];
@@ -1483,7 +1712,7 @@ async function runLiveSync(config = {}) {
     errors.push(error instanceof Error ? error.message : "Live fetch failed");
   }
   const state = buildRealTournamentState(matches, source);
-  const rows = matches.filter((match) => match.realStatus === "LIVE" || match.realStatus === "FT").map(toRow);
+  const rows = matches.map(toRow);
   let persisted = false;
   try {
     persisted = await persistRows(config, rows);

@@ -147,6 +147,9 @@ export interface Match {
   realAwayScore: number | null;
   realExtraTime: boolean;
   realPenaltyWinner: string | null;
+  /** User has submitted and locked this prediction. */
+  predictionSubmitted: boolean;
+  submittedAt: string | null;
   userHomeScore: number | null;
   userAwayScore: number | null;
   extraTime: boolean;

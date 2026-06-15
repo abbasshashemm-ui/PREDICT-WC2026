@@ -11,6 +11,7 @@ import {
   resolveMatchIdFromApiFootballFixture,
   resolveMatchIdFromEspnEvent,
 } from './fixtureIdMap';
+import { resolveApiFootballFixtureId, resolveEspnEventId } from './fixtureMatcher';
 import { mapApiFootballStatus, mapEspnStatus } from './statusMapping';
 
 const DEFAULT_API_FOOTBALL_BASE = 'https://v3.football.api-sports.io';
@@ -146,7 +147,9 @@ export class LiveDataClient {
 }
 
 export function mapApiFootballFixture(fixture: ApiFootballFixtureResponse): RealMatchState | null {
-  const matchId = resolveMatchIdFromApiFootballFixture(fixture.fixture.id);
+  const matchId =
+    resolveMatchIdFromApiFootballFixture(fixture.fixture.id) ??
+    resolveApiFootballFixtureId(fixture);
   if (!matchId) return null;
 
   const realStatus = mapApiFootballStatus(fixture.fixture.status.short);
@@ -169,7 +172,7 @@ export function mapApiFootballFixture(fixture: ApiFootballFixtureResponse): Real
 }
 
 export function mapEspnEvent(event: EspnEvent): RealMatchState | null {
-  const matchId = resolveMatchIdFromEspnEvent(event.id);
+  const matchId = resolveMatchIdFromEspnEvent(event.id) ?? resolveEspnEventId(event);
   if (!matchId) return null;
 
   const competition = event.competitions?.[0];

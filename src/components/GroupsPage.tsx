@@ -1,4 +1,4 @@
-import { memo, useCallback, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useMemo, useRef } from 'react';
 import type { Group, GroupId, Match, Team } from '../types';
 import { GROUP_IDS } from '../types';
 import { useTournament } from '../context/TournamentContext';
@@ -11,8 +11,8 @@ import {
   matchRowBorderClass,
 } from './LiveComparisonScores';
 import type { MatchPerformanceEvaluation } from '../logic/evaluateUserPerformance';
+import { canSubmitPrediction } from '../logic/predictionSubmit';
 import { useMobileViewport } from '../hooks/useMobileViewport';
-import { MobileMatchDrawer } from './MobileMatchDrawer';
 import {
   LIVE_MATCH_SLOT_HEIGHT,
   DEFAULT_MATCH_SLOT_HEIGHT,
@@ -129,7 +129,8 @@ function matchRowDataEqual(prev: Match, next: Match): boolean {
     prev.awayTeamId === next.awayTeamId &&
     prev.status === next.status &&
     prev.officialHomeScore === next.officialHomeScore &&
-    prev.officialAwayScore === next.officialAwayScore
+    prev.officialAwayScore === next.officialAwayScore &&
+    prev.predictionSubmitted === next.predictionSubmitted
   );
 }
 
@@ -144,7 +145,7 @@ function groupMatchRowPropsEqual(
     prev.isMobile === next.isMobile &&
     prev.teams === next.teams &&
     prev.onScoreChange === next.onScoreChange &&
-    prev.onOpenDrawer === next.onOpenDrawer &&
+    prev.onSubmitPrediction === next.onSubmitPrediction &&
     prev.isMatchEditable === next.isMatchEditable &&
     evaluationsEqual(prev.evaluation, next.evaluation)
   );
@@ -159,7 +160,7 @@ interface GroupMatchRowProps {
   isMobile: boolean;
   evaluation?: MatchPerformanceEvaluation;
   onScoreChange: (matchId: string, home: number | null, away: number | null) => void;
-  onOpenDrawer: (matchId: string) => void;
+  onSubmitPrediction: (matchId: string) => void;
 }
 
 const GroupMatchRow = memo(function GroupMatchRow({
@@ -171,13 +172,14 @@ const GroupMatchRow = memo(function GroupMatchRow({
   isMobile,
   evaluation,
   onScoreChange,
-  onOpenDrawer,
+  onSubmitPrediction,
 }: GroupMatchRowProps) {
   const awayRef = useRef<HTMLInputElement>(null);
   const homeTeam = teamById(teams, match.homeTeamId);
   const awayTeam = teamById(teams, match.awayTeamId);
   const matchEditable = isMatchEditable(match.id) && !isReadOnly;
-  const useDrawer = isMobile && matchEditable;
+  const inputSize = isMobile ? 'h-10 w-11 text-base' : 'h-8 w-9 text-sm';
+  const readyToSubmit = canSubmitPrediction(match);
 
   const handleHomeChange = useCallback(
     (raw: string) => {
@@ -209,19 +211,21 @@ const GroupMatchRow = memo(function GroupMatchRow({
       className={`h-full min-h-[96px] rounded-lg border bg-slate-900/40 px-2 py-2 transition-colors hover:border-slate-700 contain-layout contain-paint ${matchRowBorderClass(
         evaluation,
         isLiveMode,
-      )} ${useDrawer ? 'cursor-pointer active:bg-slate-800/50' : ''}`}
+      )}`}
     >
-      <button
-        type="button"
-        disabled={!useDrawer}
-        onClick={() => useDrawer && onOpenDrawer(match.id)}
-        className={`w-full text-left ${useDrawer ? '' : 'cursor-default'}`}
-      >
       <div className="mb-1 flex items-center justify-between text-[9px] text-slate-500">
         <span>Match {match.matchId}</span>
         {match.matchday ? <span>MD {match.matchday}</span> : null}
-        {useDrawer ? (
-          <span className="font-semibold uppercase tracking-wide text-emerald-500/80">Tap to score</span>
+        {match.predictionSubmitted ? (
+          <span className="font-semibold uppercase tracking-wide text-slate-500">Locked</span>
+        ) : readyToSubmit ? (
+          <button
+            type="button"
+            onClick={() => onSubmitPrediction(match.id)}
+            className="rounded-md bg-emerald-500 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-slate-950 transition hover:bg-emerald-400"
+          >
+            Submit
+          </button>
         ) : null}
       </div>
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
@@ -246,13 +250,13 @@ const GroupMatchRow = memo(function GroupMatchRow({
         </div>
 
         <div className="flex items-center gap-1">
-          {!matchEditable || useDrawer ? (
+          {!matchEditable ? (
             <>
-              <span className="flex h-8 w-9 items-center justify-center text-sm font-bold text-white">
+              <span className={`flex items-center justify-center font-bold text-white ${inputSize}`}>
                 {match.userHomeScore ?? '–'}
               </span>
               <span className="text-[10px] font-medium text-slate-600">–</span>
-              <span className="flex h-8 w-9 items-center justify-center text-sm font-bold text-white">
+              <span className={`flex items-center justify-center font-bold text-white ${inputSize}`}>
                 {match.userAwayScore ?? '–'}
               </span>
             </>
@@ -266,7 +270,7 @@ const GroupMatchRow = memo(function GroupMatchRow({
                 placeholder=""
                 onChange={(e) => handleHomeChange(e.target.value)}
                 onKeyUp={handleHomeKeyUp}
-                className="h-8 w-9 rounded-md border border-slate-600 bg-slate-950 text-center text-sm font-bold text-white transition focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400/40"
+                className={`rounded-md border border-slate-600 bg-slate-950 text-center font-bold text-white transition focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400/40 ${inputSize}`}
                 aria-label={`${homeTeam?.fullName ?? 'Home'} score`}
               />
               <span className="text-[10px] font-medium text-slate-600">–</span>
@@ -278,7 +282,7 @@ const GroupMatchRow = memo(function GroupMatchRow({
                 value={match.userAwayScore ?? ''}
                 placeholder=""
                 onChange={(e) => handleAwayChange(e.target.value)}
-                className="h-8 w-9 rounded-md border border-slate-600 bg-slate-950 text-center text-sm font-bold text-white transition focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400/40"
+                className={`rounded-md border border-slate-600 bg-slate-950 text-center font-bold text-white transition focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400/40 ${inputSize}`}
                 aria-label={`${awayTeam?.fullName ?? 'Away'} score`}
               />
             </>
@@ -305,7 +309,6 @@ const GroupMatchRow = memo(function GroupMatchRow({
           )}
         </div>
       </div>
-      </button>
 
       <LiveComparisonScores
         match={match}
@@ -327,7 +330,7 @@ interface GroupCardProps {
   isMobile: boolean;
   performanceByMatchId: Record<number, MatchPerformanceEvaluation>;
   onScoreChange: (matchId: string, home: number | null, away: number | null) => void;
-  onOpenDrawer: (matchId: string) => void;
+  onSubmitPrediction: (matchId: string) => void;
   onManualTieBreak: (groupId: GroupId, orderedTeamIds: string[]) => void;
 }
 
@@ -341,7 +344,7 @@ const GroupCard = memo(function GroupCard({
   isMobile,
   performanceByMatchId,
   onScoreChange,
-  onOpenDrawer,
+  onSubmitPrediction,
   onManualTieBreak,
 }: GroupCardProps) {
   return (
@@ -379,7 +382,7 @@ const GroupCard = memo(function GroupCard({
               isMobile={isMobile}
               evaluation={performanceByMatchId[match.matchId]}
               onScoreChange={onScoreChange}
-              onOpenDrawer={onOpenDrawer}
+              onSubmitPrediction={onSubmitPrediction}
             />
           )}
         />
@@ -389,17 +392,19 @@ const GroupCard = memo(function GroupCard({
 });
 
 export function GroupsPage() {
-  const { state, setGroupScore, setManualTieBreak, isLiveMode, performance, isMatchEditable } = useTournament();
+  const {
+    state,
+    setGroupScore,
+    setManualTieBreak,
+    isLiveMode,
+    performance,
+    isMatchEditable,
+    submitPrediction,
+  } = useTournament();
   const { isReadOnly } = useTournamentLayout();
   const isMobile = useMobileViewport();
-  const [drawerMatchId, setDrawerMatchId] = useState<string | null>(null);
   const { groups, groupMatches } = state.snapshot;
   const { teams } = state;
-
-  const drawerMatch = useMemo(
-    () => groupMatches.find((match) => match.id === drawerMatchId) ?? null,
-    [drawerMatchId, groupMatches],
-  );
 
   const matchesByGroup = useMemo(() => {
     const map = new Map<GroupId, Match[]>();
@@ -417,8 +422,7 @@ export function GroupsPage() {
   }, [groupMatches]);
 
   const completed = useMemo(
-    () =>
-      groupMatches.filter((m) => m.userHomeScore !== null && m.userAwayScore !== null).length,
+    () => groupMatches.filter((m) => m.predictionSubmitted).length,
     [groupMatches],
   );
 
@@ -427,7 +431,7 @@ export function GroupsPage() {
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-800 bg-slate-900/50 px-4 py-3">
         <p className="text-sm text-slate-300">
           <span className="font-bold text-white">{completed}</span>
-          <span className="text-slate-500"> / 72 matches predicted</span>
+          <span className="text-slate-500"> / 72 matches submitted</span>
         </p>
         <div className="h-2 w-32 overflow-hidden rounded-full bg-slate-800">
           <div
@@ -451,7 +455,7 @@ export function GroupsPage() {
               isMobile={isMobile}
               performanceByMatchId={performance.byMatchId}
               onScoreChange={setGroupScore}
-              onOpenDrawer={setDrawerMatchId}
+              onSubmitPrediction={submitPrediction}
               onManualTieBreak={setManualTieBreak}
             />
           );
@@ -469,17 +473,6 @@ export function GroupsPage() {
           );
         })}
       </div>
-
-      <MobileMatchDrawer
-        match={drawerMatch}
-        teams={teams}
-        open={drawerMatch !== null}
-        readOnly={!drawerMatch || !isMatchEditable(drawerMatch.id)}
-        onClose={() => setDrawerMatchId(null)}
-        onScoreChange={(home, away) => {
-          if (drawerMatch) setGroupScore(drawerMatch.id, home, away);
-        }}
-      />
     </div>
   );
 }
