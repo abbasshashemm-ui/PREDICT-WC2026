@@ -1,20 +1,36 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
-  <circle cx="60" cy="60" r="52" fill="#1B4D2E" stroke="#B5935A" stroke-width="4"/>
-  <path d="M60 14 72 28 68 44 52 44 48 28Z" fill="#0a0a0a" stroke="#B5935A" stroke-width="2" stroke-linejoin="round"/>
-  <path d="M48 28 36 38 40 54 52 44Z" fill="#1B4D2E" stroke="#B5935A" stroke-width="2" stroke-linejoin="round"/>
-  <path d="M72 28 84 38 80 54 68 44Z" fill="#1B4D2E" stroke="#B5935A" stroke-width="2" stroke-linejoin="round"/>
-  <path d="M40 54 52 44 68 44 80 54 76 70 44 70Z" fill="#0a0a0a" stroke="#B5935A" stroke-width="2" stroke-linejoin="round"/>
-  <path d="M44 70 36 82 48 92 60 86 72 92 84 82 76 70Z" fill="#1B4D2E" stroke="#B5935A" stroke-width="2" stroke-linejoin="round"/>
-  <path d="M48 92 60 106 72 92 60 86Z" fill="#0a0a0a" stroke="#B5935A" stroke-width="2" stroke-linejoin="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <rect width="512" height="512" fill="#000"/>
+  <circle cx="256" cy="256" r="210" fill="#004422" stroke="#D4AF37" stroke-width="14"/>
+  <path d="M256 62 290 102 280 148 232 148 222 102Z" fill="#0a0a0a" stroke="#D4AF37" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M222 102 188 128 198 174 232 148Z" fill="#004422" stroke="#D4AF37" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M290 102 324 128 314 174 280 148Z" fill="#004422" stroke="#D4AF37" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M198 174 232 148 280 148 314 174 304 220 208 220Z" fill="#0a0a0a" stroke="#D4AF37" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M208 220 188 262 214 298 256 282 298 298 324 262 304 220Z" fill="#004422" stroke="#D4AF37" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M214 298 256 352 298 298 256 282Z" fill="#0a0a0a" stroke="#D4AF37" stroke-width="6" stroke-linejoin="round"/>
   <defs>
-    <pattern id="arrow-stripes" width="1" height="6" patternUnits="userSpaceOnUse">
-      <rect width="1" height="2" fill="#fff"/>
-      <rect y="2" width="1" height="2" fill="#1D4ED8"/>
-      <rect y="4" width="1" height="2" fill="#DC2626"/>
+    <pattern id="arrow-stripes" width="16" height="16" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
+      <rect width="16" height="5.33" fill="#DC2626"/>
+      <rect y="5.33" width="16" height="5.33" fill="#fff"/>
+      <rect y="10.66" width="16" height="5.34" fill="#1D4ED8"/>
     </pattern>
   </defs>
-  <path d="M18 88 30 72 24 58 38 48 34 34 52 26 58 38 72 30 88 18" stroke="url(#arrow-stripes)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M18 88 30 72 24 58 38 48 34 34 52 26 58 38 72 30 88 18" stroke="#B5935A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M88 18 104 10 96 26Z" fill="#B5935A"/>
-  <path d="M100 22 108 16 104 28Z" fill="#B5935A"/>
+  <path
+    d="M72 392 132 318 108 262 168 210 148 154 220 118 244 168 296 132 392 72"
+    stroke="url(#arrow-stripes)"
+    stroke-width="34"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    fill="none"
+  />
+  <path
+    d="M72 392 132 318 108 262 168 210 148 154 220 118 244 168 296 132 392 72"
+    stroke="#D4AF37"
+    stroke-width="8"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    fill="none"
+  />
+  <path d="M392 72 448 44 420 104Z" fill="#D4AF37"/>
+  <path d="M392 72 420 104 404 88Z" fill="#1D4ED8"/>
+  <path d="M432 88 456 72 448 100Z" fill="#D4AF37"/>
 </svg>

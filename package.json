@@ -11,7 +11,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "generate:matches": "node scripts/generate-matches-data.mjs",
-    "generate:annex-c": "node scripts/generate-annex-c.mjs"
+    "generate:annex-c": "node scripts/generate-annex-c.mjs",
+    "render:brand": "node scripts/render-brand-assets.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.108.1",
@@ -32,6 +33,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.6.0",
+    "sharp": "^0.34.5",
     "tailwindcss": "^4.3.1",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.59.2",
