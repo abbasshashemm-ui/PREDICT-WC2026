@@ -62,8 +62,8 @@ export const INITIAL_MATCH_DEFINITIONS: MatchDefinition[] = [
     "stage": "Group",
     "groupId": "D",
     "matchday": 1,
-    "homeTeam": "D3",
-    "awayTeam": "D4",
+    "homeTeam": "D2",
+    "awayTeam": "D3",
     "date": "2026-06-14",
     "kickoffTime": "2026-06-14T04:00:00Z",
     "venue": "BC Place, Vancouver"
@@ -349,7 +349,7 @@ export const INITIAL_MATCH_DEFINITIONS: MatchDefinition[] = [
     "groupId": "D",
     "matchday": 2,
     "homeTeam": "D1",
-    "awayTeam": "D3",
+    "awayTeam": "D2",
     "date": "2026-06-19",
     "kickoffTime": "2026-06-19T19:00:00Z",
     "venue": "Lumen Field, Seattle"
@@ -657,7 +657,7 @@ export const INITIAL_MATCH_DEFINITIONS: MatchDefinition[] = [
     "groupId": "D",
     "matchday": 3,
     "homeTeam": "D4",
-    "awayTeam": "D3",
+    "awayTeam": "D2",
     "date": "2026-06-26",
     "kickoffTime": "2026-06-26T02:00:00Z",
     "venue": "Levi's Stadium, Santa Clara"
