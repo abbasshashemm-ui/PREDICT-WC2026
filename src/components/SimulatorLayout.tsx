@@ -44,7 +44,7 @@ export function SimulatorLayout() {
       ) : null}
 
       <main
-        className={`mx-auto px-4 pt-6 ${
+        className={`mx-auto px-4 pt-4 ${
           isPremium ? 'max-w-7xl' : 'max-w-[100rem]'
         } ${view === 'knockout' && !isPremium ? 'xl:max-w-[100rem]' : ''}`}
       >
@@ -57,7 +57,7 @@ export function SimulatorLayout() {
         ) : null}
         <LocalBracketSyncBanner />
         {isLiveMode ? (
-          <div className="mb-6 rounded-xl border border-sky-500/25 bg-sky-500/10 px-4 py-3 text-center text-sm text-sky-100">
+          <div className="mb-4 rounded-lg border border-sky-500/25 bg-sky-500/10 px-3 py-2 text-center text-xs text-sky-100">
             Live Tournament Mode — official results are synced beside your predictions.
             Green = correct, amber = partial, red = missed.
           </div>

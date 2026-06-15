@@ -51,16 +51,16 @@ export function SimulationControl() {
       aria-label="Simulation controls"
       className="border-b border-slate-800/80 bg-slate-900/70 backdrop-blur-md"
     >
-      <div className="mx-auto flex max-w-[100rem] flex-wrap items-center gap-2 px-4 py-2.5">
-        <p className="mr-1 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
-          Simulation
+      <div className="mx-auto flex max-w-[100rem] flex-wrap items-center gap-1.5 px-3 py-1.5">
+        <p className="mr-0.5 text-[9px] font-bold uppercase tracking-[0.15em] text-slate-500">
+          Sim
         </p>
 
         <button
           type="button"
           disabled={disabled || groupRemaining === 0}
           onClick={simulateGroupStage}
-          className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-emerald-200 transition hover:border-emerald-400 hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-40"
+          className="rounded-md border border-emerald-500/40 bg-emerald-500/10 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-200 transition hover:border-emerald-400 hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-40"
         >
           Simulate group stage
           {groupRemaining > 0 ? (
@@ -75,7 +75,7 @@ export function SimulationControl() {
             (view === 'knockout' && knockoutRemaining === 0 && isGroupStageComplete)
           }
           onClick={simulateToCurrentRound}
-          className="rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-cyan-100 transition hover:border-cyan-400 hover:bg-cyan-500/20 disabled:cursor-not-allowed disabled:opacity-40"
+          className="rounded-md border border-cyan-500/40 bg-cyan-500/10 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-cyan-100 transition hover:border-cyan-400 hover:bg-cyan-500/20 disabled:cursor-not-allowed disabled:opacity-40"
           title={
             view === 'knockout'
               ? `Simulate through rounds before ${roundLabel}`
@@ -94,22 +94,20 @@ export function SimulationControl() {
           type="button"
           disabled={disabled}
           onClick={handleReset}
-          className="ml-auto rounded-lg border border-rose-500/30 bg-rose-500/5 px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-rose-200 transition hover:border-rose-400/50 hover:bg-rose-500/15 disabled:cursor-not-allowed disabled:opacity-40"
+          className="ml-auto rounded-md border border-rose-500/30 bg-rose-500/5 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-rose-200 transition hover:border-rose-400/50 hover:bg-rose-500/15 disabled:cursor-not-allowed disabled:opacity-40"
         >
           Reset entire tournament
         </button>
       </div>
 
       {disabled ? (
-        <p className="mx-auto max-w-[100rem] px-4 pb-2 text-[10px] text-slate-500">
-          Simulations are disabled in read-only or live tournament mode.
+        <p className="mx-auto max-w-[100rem] px-3 pb-1 text-[9px] text-slate-500">
+          Simulations disabled in read-only or live mode.
         </p>
       ) : (
-        <p className="mx-auto max-w-[100rem] px-4 pb-2 text-[10px] text-slate-500">
-          Group predictions: {predictedGroupCount}/72
-          {view === 'knockout'
-            ? ` · Knockout tab: ${roundLabel}`
-            : ' · Open Knockout Bracket to target a round tab'}
+        <p className="mx-auto max-w-[100rem] px-3 pb-1 text-[9px] text-slate-500">
+          Group: {predictedGroupCount}/72
+          {view === 'knockout' ? ` · ${roundLabel}` : ' · Open Knockout for round targeting'}
         </p>
       )}
     </section>

@@ -22,6 +22,9 @@ function isMatchPredicted(match: Match): boolean {
   return true;
 }
 
+const actionBtn =
+  'rounded-md border px-2 py-1 text-[10px] font-semibold transition whitespace-nowrap';
+
 interface NavbarProps {
   view: AppView;
   onViewChange: (view: AppView) => void;
@@ -78,20 +81,23 @@ export function Navbar({
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-800/80 bg-slate-950/95 backdrop-blur-xl">
-      <div className="mx-auto max-w-[100rem] px-4 py-3">
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-          <BrandLogoInline />
-          <div className="flex flex-wrap items-center gap-2">
+      <div className="mx-auto max-w-[100rem] px-3 py-2">
+        <div className="mb-1.5 flex items-center justify-between gap-2">
+          <BrandLogoInline
+            markClassName="h-7 w-7 shrink-0"
+            wordmarkClassName="text-[8px] leading-tight"
+          />
+          <div className="flex flex-wrap items-center justify-end gap-1">
             {showAuthActions ? (
               authUsername ? (
                 <>
-                  <span className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold text-emerald-200">
+                  <span className={`${actionBtn} border-emerald-500/30 bg-emerald-500/10 text-emerald-200`}>
                     @{authUsername}
                   </span>
                   <button
                     type="button"
                     onClick={onSignOut}
-                    className="rounded-lg border border-slate-600 bg-slate-800/60 px-3 py-1.5 text-xs font-semibold text-slate-300 transition hover:border-slate-500 hover:text-white"
+                    className={`${actionBtn} border-slate-600 bg-slate-800/60 text-slate-300 hover:border-slate-500 hover:text-white`}
                   >
                     Sign out
                   </button>
@@ -100,28 +106,28 @@ export function Navbar({
                 <button
                   type="button"
                   onClick={onOpenAuth}
-                  className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold text-emerald-200 transition hover:border-emerald-400 hover:bg-emerald-500/20"
+                  className={`${actionBtn} border-emerald-500/40 bg-emerald-500/10 text-emerald-200 hover:border-emerald-400 hover:bg-emerald-500/20`}
                 >
                   Sign in
                 </button>
               )
             ) : null}
             {isReadOnly ? (
-              <span className="rounded-lg border border-slate-600 bg-slate-800/60 px-3 py-1.5 text-xs font-semibold text-slate-300">
-                View-only shared bracket
+              <span className={`${actionBtn} border-slate-600 bg-slate-800/60 text-slate-300`}>
+                View-only
               </span>
             ) : null}
             {!isReadOnly && !isPremium ? (
               <button
                 type="button"
                 onClick={() => setShowPaywall((open) => !open)}
-                className="rounded-lg border border-violet-500/40 bg-violet-500/10 px-3 py-1.5 text-xs font-semibold text-violet-200 transition hover:border-violet-400 hover:bg-violet-500/20"
+                className={`${actionBtn} border-violet-500/40 bg-violet-500/10 text-violet-200 hover:border-violet-400 hover:bg-violet-500/20`}
               >
                 Go ad-free
               </button>
             ) : null}
             {isPremium ? (
-              <span className="rounded-lg border border-violet-500/35 bg-violet-500/10 px-3 py-1.5 text-xs font-semibold text-violet-200">
+              <span className={`${actionBtn} border-violet-500/35 bg-violet-500/10 text-violet-200`}>
                 Premium
               </span>
             ) : null}
@@ -129,7 +135,7 @@ export function Navbar({
               <button
                 type="button"
                 onClick={openSharePage}
-                className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition ${
+                className={`${actionBtn} ${
                   shareReady
                     ? 'border-emerald-400/40 bg-emerald-500/15 text-emerald-200 hover:bg-emerald-500/25'
                     : 'border-slate-600 bg-slate-800/60 text-slate-400 hover:border-slate-500 hover:text-slate-200'
@@ -142,7 +148,7 @@ export function Navbar({
               <button
                 type="button"
                 onClick={() => void refreshLiveResults()}
-                className="rounded-lg border border-sky-500/40 bg-sky-500/10 px-3 py-1.5 text-xs font-semibold text-sky-300 transition hover:border-sky-400 hover:bg-sky-500/20"
+                className={`${actionBtn} border-sky-500/40 bg-sky-500/10 text-sky-300 hover:border-sky-400 hover:bg-sky-500/20`}
               >
                 Refresh live
               </button>
@@ -151,34 +157,96 @@ export function Navbar({
         </div>
 
         {!isReadOnly ? (
-          <div className="mb-3 flex rounded-xl bg-slate-900 p-1 ring-1 ring-slate-800">
+          <div className="mb-1.5 grid grid-cols-1 gap-1.5 sm:grid-cols-2">
+            <div className="flex rounded-lg bg-slate-900 p-0.5 ring-1 ring-slate-800">
+              <button
+                type="button"
+                onClick={() => handleModeChange('prediction')}
+                className={`flex-1 rounded-md py-1 text-[10px] font-bold transition ${
+                  tournamentMode === 'prediction'
+                    ? 'bg-emerald-500 text-slate-950'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Prediction Mode
+              </button>
+              <button
+                type="button"
+                onClick={() => handleModeChange('live')}
+                className={`flex-1 rounded-md py-1 text-[10px] font-bold transition ${
+                  tournamentMode === 'live'
+                    ? 'bg-sky-500 text-slate-950'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Live Mode
+              </button>
+            </div>
+
+            <nav
+              className="flex rounded-lg bg-slate-900 p-0.5 ring-1 ring-slate-800"
+              aria-label="Tournament views"
+            >
+              <button
+                type="button"
+                onClick={() => onViewChange('groups')}
+                aria-current={view === 'groups' ? 'page' : undefined}
+                className={`flex-1 rounded-md py-1 text-[10px] font-bold transition ${
+                  view === 'groups'
+                    ? 'bg-emerald-500 text-slate-950'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Group Stage
+              </button>
+              <button
+                type="button"
+                onClick={() => onViewChange('knockout')}
+                aria-current={view === 'knockout' ? 'page' : undefined}
+                className={`flex-1 rounded-md py-1 text-[10px] font-bold transition ${
+                  view === 'knockout'
+                    ? 'bg-emerald-500 text-slate-950'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Knockout Bracket
+              </button>
+            </nav>
+          </div>
+        ) : (
+          <nav
+            className="mb-1.5 flex rounded-lg bg-slate-900 p-0.5 ring-1 ring-slate-800"
+            aria-label="Tournament views"
+          >
             <button
               type="button"
-              onClick={() => handleModeChange('prediction')}
-              className={`flex-1 rounded-lg py-2 text-xs font-bold transition ${
-                tournamentMode === 'prediction'
+              onClick={() => onViewChange('groups')}
+              aria-current={view === 'groups' ? 'page' : undefined}
+              className={`flex-1 rounded-md py-1 text-[10px] font-bold transition ${
+                view === 'groups'
                   ? 'bg-emerald-500 text-slate-950'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              User Prediction Mode
+              Group Stage
             </button>
             <button
               type="button"
-              onClick={() => handleModeChange('live')}
-              className={`flex-1 rounded-lg py-2 text-xs font-bold transition ${
-                tournamentMode === 'live'
-                  ? 'bg-sky-500 text-slate-950'
+              onClick={() => onViewChange('knockout')}
+              aria-current={view === 'knockout' ? 'page' : undefined}
+              className={`flex-1 rounded-md py-1 text-[10px] font-bold transition ${
+                view === 'knockout'
+                  ? 'bg-emerald-500 text-slate-950'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              Live Tournament Mode
+              Knockout Bracket
             </button>
-          </div>
-        ) : null}
+          </nav>
+        )}
 
         {!isReadOnly && showPaywall && !isPremium ? (
-          <div className="mb-3">
+          <div className="mb-1.5">
             <PremiumPaywall />
           </div>
         ) : null}
@@ -190,54 +258,21 @@ export function Navbar({
           syncError={liveSyncError}
         />
 
-        <div className="mb-3 rounded-xl border border-slate-800/80 bg-slate-900/50 px-3 py-2.5">
-          <div className="mb-1.5 flex items-center justify-between gap-2">
-            <p className="text-xs text-slate-400">
-              Your Predictions:{' '}
-              <span className="font-bold text-white">{predictedCount}</span>
-              <span className="text-slate-500"> / {TOTAL_MATCHES} Matches Saved</span>
-            </p>
-            <span className="text-[10px] font-bold tabular-nums text-emerald-400">
-              {Math.round(progressPct)}%
-            </span>
-          </div>
-          <div className="h-1.5 overflow-hidden rounded-full bg-slate-800">
+        <div className="flex items-center gap-2 rounded-lg border border-slate-800/80 bg-slate-900/50 px-2 py-1">
+          <p className="shrink-0 text-[10px] text-slate-400">
+            <span className="font-bold text-white">{predictedCount}</span>
+            <span className="text-slate-500">/{TOTAL_MATCHES}</span>
+          </p>
+          <div className="h-1 min-w-0 flex-1 overflow-hidden rounded-full bg-slate-800">
             <div
               className="h-full rounded-full bg-emerald-500 transition-all duration-500 ease-out"
               style={{ width: `${progressPct}%` }}
             />
           </div>
+          <span className="shrink-0 text-[10px] font-bold tabular-nums text-emerald-400">
+            {Math.round(progressPct)}%
+          </span>
         </div>
-
-        <nav
-          className="flex rounded-xl bg-slate-900 p-1 ring-1 ring-slate-800"
-          aria-label="Tournament views"
-        >
-          <button
-            type="button"
-            onClick={() => onViewChange('groups')}
-            aria-current={view === 'groups' ? 'page' : undefined}
-            className={`flex-1 rounded-lg py-2.5 text-sm font-bold transition-all duration-200 ${
-              view === 'groups'
-                ? 'bg-emerald-500 text-slate-950 shadow-md'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            Group Stage
-          </button>
-          <button
-            type="button"
-            onClick={() => onViewChange('knockout')}
-            aria-current={view === 'knockout' ? 'page' : undefined}
-            className={`flex-1 rounded-lg py-2.5 text-sm font-bold transition-all duration-200 ${
-              view === 'knockout'
-                ? 'bg-emerald-500 text-slate-950 shadow-md'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            Knockout Bracket
-          </button>
-        </nav>
       </div>
     </header>
   );
