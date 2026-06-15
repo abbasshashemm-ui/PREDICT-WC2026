@@ -130,6 +130,6 @@ export function startLiveResultsSync(
 
 export const DEFAULT_LIVE_SYNC_CONFIG: LiveResultsSyncConfig = {
   jsonFeedUrl: DEFAULT_JSON_FEED,
-  apiUrl: import.meta.env.VITE_LIVE_RESULTS_API_URL ?? null,
+  apiUrl: import.meta.env.VITE_LIVE_RESULTS_API_URL ?? '/api/live-results',
   pollIntervalMs: 30_000,
 };

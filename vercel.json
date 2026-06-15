@@ -13,5 +13,11 @@
       "destination": "/api/bracket-meta?slug=:slug"
     },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ],
+  "crons": [
+    {
+      "path": "/api/sync-live-results",
+      "schedule": "*/2 * * * *"
+    }
   ]
 }

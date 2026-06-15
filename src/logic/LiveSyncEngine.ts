@@ -1,8 +1,9 @@
-import type { Match, OfficialMatchData } from '../types';
+import type { Match, OfficialMatchData, RealWorldMatchStatus } from '../types';
 import {
   getWinnerFromScores,
   type EffectiveMatchScores,
 } from './matchScores';
+import { isMatchLocked } from '../lib/liveSync/matchLock';
 import { adminFetchLiveResults, type LiveResultsFetchResult } from './liveResultsSync';
 
 /** Live tournament accuracy point matrix. */
@@ -65,7 +66,7 @@ export const DEFAULT_LIVE_SYNC_ENGINE_CONFIG: LiveSyncEngineConfig = {
   supabaseAnonKey: import.meta.env.VITE_SUPABASE_ANON_KEY ?? null,
   resultsTable: import.meta.env.VITE_SUPABASE_RESULTS_TABLE ?? 'match_results',
   jsonFeedUrl: '/liveResults.json',
-  apiUrl: import.meta.env.VITE_LIVE_RESULTS_API_URL ?? null,
+  apiUrl: import.meta.env.VITE_LIVE_RESULTS_API_URL ?? '/api/live-results',
   pollIntervalMs: 30_000,
 };
 
@@ -74,6 +75,16 @@ interface SupabaseMatchRow {
   match_id?: number;
   matchId?: number;
   status?: Match['status'];
+  real_status?: RealWorldMatchStatus;
+  realStatus?: RealWorldMatchStatus;
+  real_home_score?: number | null;
+  real_away_score?: number | null;
+  realHomeScore?: number | null;
+  realAwayScore?: number | null;
+  real_extra_time?: boolean;
+  realExtraTime?: boolean;
+  real_penalty_winner?: string | null;
+  realPenaltyWinner?: string | null;
   official_home_score?: number | null;
   official_away_score?: number | null;
   officialHomeScore?: number | null;
@@ -82,6 +93,10 @@ interface SupabaseMatchRow {
   officialPenaltyWinnerId?: string | null;
   kickoff_time?: string;
   kickoffTime?: string;
+  lock_time?: string;
+  lockTime?: string;
+  api_football_fixture_id?: number | null;
+  espn_event_id?: string | null;
 }
 
 function hasUserPrediction(match: Match): boolean {
@@ -98,18 +113,18 @@ function hasUserPrediction(match: Match): boolean {
 
 export function hasOfficialResult(match: Match): boolean {
   return (
-    match.status === 'completed' &&
-    match.officialHomeScore !== null &&
-    match.officialAwayScore !== null
+    (match.status === 'completed' || match.realStatus === 'FT') &&
+    (match.officialHomeScore !== null || match.realHomeScore !== null) &&
+    (match.officialAwayScore !== null || match.realAwayScore !== null)
   );
 }
 
-/** When live sync is active, completed official rows cannot be edited. */
+/** @deprecated Use isMatchLocked from matchScores / liveSync. */
 export function isMatchLockedByOfficialResult(
   match: Match,
-  useRealWorldData: boolean,
+  _useRealWorldData = false,
 ): boolean {
-  return useRealWorldData && hasOfficialResult(match);
+  return isMatchLocked(match);
 }
 
 function userScores(match: Match): EffectiveMatchScores | null {
@@ -280,15 +295,28 @@ function mapSupabaseRow(row: SupabaseMatchRow): OfficialMatchData | null {
   const matchId = row.matchId ?? row.match_id;
   if (typeof matchId !== 'number') return null;
 
+  const realStatus = row.realStatus ?? row.real_status ?? 'NS';
+  const realHomeScore = row.realHomeScore ?? row.real_home_score ?? null;
+  const realAwayScore = row.realAwayScore ?? row.real_away_score ?? null;
+  const lockTime = row.lockTime ?? row.lock_time ?? row.kickoffTime ?? row.kickoff_time;
+
   return {
     id: row.id ?? `m-${matchId}`,
     matchId,
-    status: row.status ?? 'completed',
-    officialHomeScore: row.officialHomeScore ?? row.official_home_score ?? null,
-    officialAwayScore: row.officialAwayScore ?? row.official_away_score ?? null,
+    status: row.status ?? (realStatus === 'FT' ? 'completed' : realStatus === 'LIVE' ? 'live' : 'pending'),
+    realStatus,
+    realHomeScore,
+    realAwayScore,
+    realExtraTime: row.realExtraTime ?? row.real_extra_time ?? false,
+    realPenaltyWinner: row.realPenaltyWinner ?? row.real_penalty_winner ?? null,
+    officialHomeScore: row.officialHomeScore ?? row.official_home_score ?? realHomeScore,
+    officialAwayScore: row.officialAwayScore ?? row.official_away_score ?? realAwayScore,
     officialPenaltyWinnerId:
-      row.officialPenaltyWinnerId ?? row.official_penalty_winner_id ?? null,
-    kickoffTime: row.kickoffTime ?? row.kickoff_time,
+      row.officialPenaltyWinnerId ?? row.official_penalty_winner_id ?? row.realPenaltyWinner ?? null,
+    kickoffTime: row.kickoffTime ?? row.kickoff_time ?? lockTime,
+    lockTime,
+    apiFootballFixtureId: row.api_football_fixture_id ?? null,
+    espnEventId: row.espn_event_id ?? null,
   };
 }
 

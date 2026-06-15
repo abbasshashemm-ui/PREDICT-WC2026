@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run build:validator && npm run build:seo && tsc -b && vite build",
+    "build": "npm run build:validator && npm run build:seo && npm run build:live-sync && tsc -b && vite build",
     "build:validator": "node scripts/bundle-validate-bracket.mjs",
     "build:seo": "node scripts/bundle-bracket-seo.mjs",
+    "build:live-sync": "node scripts/bundle-live-sync.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
     "generate:matches": "node scripts/generate-matches-data.mjs",

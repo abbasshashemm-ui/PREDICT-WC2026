@@ -12,16 +12,13 @@ import type { AppView, GroupId, TournamentMode } from '../types';
 import type { BracketRoundId } from '../logic/bracketRounds';
 import { parseShareRoute } from './tournamentLayoutRoute';
 import {
-  adminFetchLiveResults,
-  DEFAULT_LIVE_SYNC_CONFIG,
-} from '../logic/liveResultsSync';
-import {
   DEFAULT_LIVE_SYNC_ENGINE_CONFIG,
   evaluateUserPerformance,
-  isMatchLockedByOfficialResult,
+  fetchOfficialResultsFromDatabase,
   startLiveSyncEngine,
   type UserPerformanceReport,
 } from '../logic/LiveSyncEngine';
+import { isMatchLocked } from '../logic/matchScores';
 import { syncUserBracketWithRealWorld } from '../logic/syncBracket';
 import {
   applyOfficialSync,
@@ -134,7 +131,7 @@ export function TournamentProvider({ children }: { children: ReactNode }) {
 
   const refreshLiveResults = useCallback(async () => {
     try {
-      const result = await adminFetchLiveResults(DEFAULT_LIVE_SYNC_CONFIG);
+      const result = await fetchOfficialResultsFromDatabase(DEFAULT_LIVE_SYNC_ENGINE_CONFIG);
       setState((prev) => applyOfficialSync(prev, result.matches));
       setLiveLastSyncedAt(result.fetchedAt);
       setLiveSyncError(null);
@@ -249,12 +246,10 @@ export function TournamentProvider({ children }: { children: ReactNode }) {
         state.groupMatches.find((m) => m.id === matchId) ??
         state.knockoutMatches.find((m) => m.id === matchId);
       if (!match) return false;
-      if (useRealWorldData && isMatchLockedByOfficialResult(match, useRealWorldData)) {
-        return false;
-      }
+      if (isMatchLocked(match)) return false;
       return true;
     },
-    [isReadOnly, useRealWorldData, state.groupMatches, state.knockoutMatches],
+    [isReadOnly, state.groupMatches, state.knockoutMatches],
   );
 
   const setGroupScore = useCallback(

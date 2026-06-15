@@ -26,6 +26,9 @@ export type MatchStage =
 
 export type MatchStatus = 'pending' | 'live' | 'completed';
 
+/** External API lifecycle status stored on each match. */
+export type RealWorldMatchStatus = 'NS' | 'LIVE' | 'FT';
+
 export type AppView = 'groups' | 'knockout';
 
 export type TournamentMode = 'prediction' | 'live';
@@ -134,8 +137,16 @@ export interface Match {
   awayTeamId: string | null;
   date: string;
   kickoffTime: string;
+  /** Kickoff ISO timestamp — predictions lock at this time. */
+  lockTime: string;
   venue: string;
   status: MatchStatus;
+  /** External API lifecycle status. */
+  realStatus: RealWorldMatchStatus;
+  realHomeScore: number | null;
+  realAwayScore: number | null;
+  realExtraTime: boolean;
+  realPenaltyWinner: string | null;
   userHomeScore: number | null;
   userAwayScore: number | null;
   extraTime: boolean;
@@ -156,11 +167,19 @@ export interface OfficialMatchData {
   id: string;
   matchId: number;
   kickoffTime?: string;
+  lockTime?: string;
   status: MatchStatus;
+  realStatus?: RealWorldMatchStatus;
+  realHomeScore?: number | null;
+  realAwayScore?: number | null;
+  realExtraTime?: boolean;
+  realPenaltyWinner?: string | null;
   officialHomeScore: number | null;
   officialAwayScore: number | null;
   officialPenaltyWinnerId?: string | null;
   discipline?: MatchDiscipline;
+  apiFootballFixtureId?: number | null;
+  espnEventId?: string | null;
 }
 
 export type RoundOf32WinnerSlot =

@@ -3,8 +3,7 @@ import type { Match, Team } from '../types';
 import { teamById } from '../data/teams';
 import { getMatchWinner } from '../logic/knockoutBracket';
 import { isKnockoutMatchDecided } from '../logic/bracketVisuals';
-import { hasOfficialResult } from '../logic/LiveSyncEngine';
-import { usesOfficialResult } from '../logic/matchScores';
+import { isMatchLocked, usesOfficialResult } from '../logic/matchScores';
 import type { MatchPerformanceEvaluation } from '../logic/LiveSyncEngine';
 
 interface MatchCardProps {
@@ -140,7 +139,7 @@ const MatchCardInner = memo(function MatchCardInner({
     match.userHomeScore !== null &&
     match.userAwayScore !== null &&
     match.userHomeScore === match.userAwayScore;
-  const officialLocked = useRealWorldData && hasOfficialResult(match);
+  const officialLocked = isMatchLocked(match);
   const canEdit = !disabled && !officialLocked && homeTeam && awayTeam;
   const showLiveSplit = useRealWorldData && usesOfficialResult(match);
   const hasOfficial = usesOfficialResult(match);

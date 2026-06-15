@@ -1,4 +1,5 @@
 import type { Match } from '../types';
+import { isMatchLocked as isMatchLockedCore } from '../lib/liveSync/matchLock';
 
 export interface EffectiveMatchScores {
   home: number;
@@ -7,29 +8,21 @@ export interface EffectiveMatchScores {
   source: 'official' | 'user';
 }
 
-function hasOfficialResult(match: Match): boolean {
-  return (
-    match.status === 'completed' &&
-    match.officialHomeScore !== null &&
-    match.officialAwayScore !== null
-  );
+/**
+ * Lock edits when kickoff has passed or the match is LIVE/FT on the official feed.
+ */
+export function isMatchLocked(match: Match, _useRealWorldData = false, now?: Date): boolean {
+  return isMatchLockedCore(match, now);
 }
 
-/** Lock edits when live official results are active for a completed match. */
-export function isMatchLocked(
-  match: Match,
-  useRealWorldData = false,
-  _now: Date = new Date(),
-): boolean {
-  return useRealWorldData && hasOfficialResult(match);
-}
+export { isMatchLocked as isMatchLockedByRules } from '../lib/liveSync/matchLock';
 
 export function usesOfficialResult(match: Match): boolean {
-  return (
-    match.status === 'completed' &&
-    match.officialHomeScore !== null &&
-    match.officialAwayScore !== null
-  );
+  const hasScores =
+    (match.officialHomeScore !== null && match.officialAwayScore !== null) ||
+    (match.realHomeScore !== null && match.realAwayScore !== null);
+
+  return (match.status === 'live' || match.status === 'completed' || match.realStatus !== 'NS') && hasScores;
 }
 
 export function getEffectiveMatchScores(match: Match): EffectiveMatchScores | null {
@@ -44,9 +37,9 @@ export function getEffectiveMatchScores(match: Match): EffectiveMatchScores | nu
 
   if (usesOfficialResult(match)) {
     return {
-      home: match.officialHomeScore!,
-      away: match.officialAwayScore!,
-      penaltyWinnerId: match.penalties.winnerTeamId,
+      home: match.officialHomeScore ?? match.realHomeScore!,
+      away: match.officialAwayScore ?? match.realAwayScore!,
+      penaltyWinnerId: match.realPenaltyWinner ?? match.officialPenaltyWinnerId ?? match.penalties.winnerTeamId,
       source: 'official',
     };
   }

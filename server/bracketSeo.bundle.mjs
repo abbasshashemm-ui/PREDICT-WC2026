@@ -1313,8 +1313,14 @@ function definitionToMatch(def) {
     awayTeamId: isGroup ? slotToTeamId(def.awayTeam) : null,
     date: def.date,
     kickoffTime: def.kickoffTime,
+    lockTime: def.kickoffTime,
     venue: def.venue,
     status: "pending",
+    realStatus: "NS",
+    realHomeScore: null,
+    realAwayScore: null,
+    realExtraTime: false,
+    realPenaltyWinner: null,
     userHomeScore: null,
     userAwayScore: null,
     extraTime: false,
@@ -6333,7 +6339,8 @@ var THIRD_PLACE_SLOT_MAP = {
 
 // src/logic/matchScores.ts
 function usesOfficialResult(match) {
-  return match.status === "completed" && match.officialHomeScore !== null && match.officialAwayScore !== null;
+  const hasScores = match.officialHomeScore !== null && match.officialAwayScore !== null || match.realHomeScore !== null && match.realAwayScore !== null;
+  return (match.status === "live" || match.status === "completed" || match.realStatus !== "NS") && hasScores;
 }
 function getEffectiveMatchScores(match) {
   if (match.userHomeScore !== null && match.userAwayScore !== null) {
@@ -6346,9 +6353,9 @@ function getEffectiveMatchScores(match) {
   }
   if (usesOfficialResult(match)) {
     return {
-      home: match.officialHomeScore,
-      away: match.officialAwayScore,
-      penaltyWinnerId: match.penalties.winnerTeamId,
+      home: match.officialHomeScore ?? match.realHomeScore,
+      away: match.officialAwayScore ?? match.realAwayScore,
+      penaltyWinnerId: match.realPenaltyWinner ?? match.officialPenaltyWinnerId ?? match.penalties.winnerTeamId,
       source: "official"
     };
   }

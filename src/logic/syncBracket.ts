@@ -1,4 +1,30 @@
 import type { Match, OfficialMatchData } from '../types';
+import { toLegacyMatchStatus } from '../lib/liveSync/statusMapping';
+
+function mergeOfficialOntoMatch(match: Match, official: OfficialMatchData): Match {
+  const realStatus = official.realStatus ?? match.realStatus;
+  const legacyStatus = official.status ?? toLegacyMatchStatus(realStatus);
+  const realHome = official.realHomeScore ?? official.officialHomeScore ?? match.realHomeScore;
+  const realAway = official.realAwayScore ?? official.officialAwayScore ?? match.realAwayScore;
+
+  return {
+    ...match,
+    kickoffTime: official.kickoffTime ?? match.kickoffTime,
+    lockTime: official.lockTime ?? match.lockTime,
+    realStatus,
+    realHomeScore: realHome,
+    realAwayScore: realAway,
+    realExtraTime: official.realExtraTime ?? match.realExtraTime,
+    realPenaltyWinner:
+      official.realPenaltyWinner ?? official.officialPenaltyWinnerId ?? match.realPenaltyWinner,
+    status: legacyStatus,
+    officialHomeScore: official.officialHomeScore ?? realHome,
+    officialAwayScore: official.officialAwayScore ?? realAway,
+    officialPenaltyWinnerId:
+      official.officialPenaltyWinnerId ?? official.realPenaltyWinner ?? match.officialPenaltyWinnerId,
+    discipline: official.discipline ?? match.discipline,
+  };
+}
 
 export function syncUserBracketWithRealWorld(
   userMatchData: Match[],
@@ -10,16 +36,7 @@ export function syncUserBracketWithRealWorld(
   return userMatchData.map((match) => {
     const official = officialById.get(match.id) ?? officialByNumber.get(match.matchId);
     if (!official) return match;
-
-    return {
-      ...match,
-      kickoffTime: official.kickoffTime ?? match.kickoffTime,
-      status: official.status,
-      officialHomeScore: official.officialHomeScore,
-      officialAwayScore: official.officialAwayScore,
-      officialPenaltyWinnerId: official.officialPenaltyWinnerId ?? null,
-      discipline: official.discipline ?? match.discipline,
-    };
+    return mergeOfficialOntoMatch(match, official);
   });
 }
 
